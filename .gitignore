@@ -53,3 +53,4 @@ dkms.conf
 
 # Build dirs
 i2c_bmp581/pristine/*
+i2c_bmp581/build/*

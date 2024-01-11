@@ -42,7 +42,7 @@ uint8_t write_reg_buffer[1]; /*1 byte commands*/
 
 uint8_t read_meas_buffer[6]; /*6 bytes of incoming sensor data*/
 
-void main(void)
+int main(void)
 {
   int err;
 
@@ -68,4 +68,6 @@ void main(void)
       LOG_INF("nRF Connect SDK Fundamentals");
       k_msleep(10*60*1000); 
 	}
+
+	return 0;
 }
