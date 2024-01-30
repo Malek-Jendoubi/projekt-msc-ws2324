@@ -16,8 +16,8 @@ i2csensor:&i2c0 {
     /*
     compatible = "nordic,nrf-twim";
     zephyr,concat-buf-size = <1024>;	
-    */
-    status="okay";
+  */
+    status = "okay";
 
     bmp581: bmp581@46{
         compatible = "i2c-device";

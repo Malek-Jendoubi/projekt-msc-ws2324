@@ -14,14 +14,6 @@
 #include "bmp5.h"
 #include "common.h"
 
-/*!
- *  @brief This internal API is used to get sensor data.
- *
- *  @param[in] osr_odr_press_cfg : Structure instance of bmp5_osr_odr_press_config
- *  @param[in] dev               : Structure instance of bmp5_dev.
- *
- *  @return Status of execution.
- */
 static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
 
 /* Register the logger */
