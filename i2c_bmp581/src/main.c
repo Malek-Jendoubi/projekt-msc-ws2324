@@ -17,13 +17,15 @@
 static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
 
 /* Register the logger */
-LOG_MODULE_REGISTER(BMPI2C,LOG_LEVEL_DBG);
+LOG_MODULE_REGISTER(BMPI2C, LOG_LEVEL_DBG);
 
 int main(void)
 {
-	int8_t rslt;
+    volatile int8_t rslt;
     struct bmp5_dev dev;
-    struct bmp5_osr_odr_press_config osr_odr_press_cfg = { 0 };
+    struct bmp5_osr_odr_press_config osr_odr_press_cfg = {0};
+
+    LOG_INF("main\n");
 
     /* Interface reference is given as a parameter
      * For I2C : BMP5_I2C_INTF
@@ -33,20 +35,29 @@ int main(void)
 
     if (rslt == BMP5_OK)
     {
+        LOG_INF("bmp5_interface_init\n");
+        
         rslt = bmp5_init(&dev);
-
         if (rslt == BMP5_OK)
         {
+            LOG_INF("bmp5_init\n");
             rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
+            LOG_INF("get_sensor_data\n");
         }
     }
+    LOG_INF("before loop\n");
 
-	while (1) {
-      LOG_INF("nRF Connect SDK Fundamentals");
-      k_msleep(2*1000); 
-	}
+    int loop_count;
+    while (1)
+    {
+        LOG_INF("nRF Connect SDK Fundamentals: %d\n", loop_count);
+        rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
+        LOG_INF("status: %d\n", rslt);
+        loop_count++;
+        k_msleep(2*1000); 
+    }
 
-	return 0;
+    return 0;
 }
 
 static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
@@ -69,7 +80,7 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
             {
 #ifdef BMP5_USE_FIXED_POINT
                 LOG_INF("%d, %lu, %ld\n", idx, (long unsigned int)sensor_data.pressure,
-                       (long int)sensor_data.temperature);
+                        (long int)sensor_data.temperature);
 #else
                 LOG_INF("%d, %f, %f\n", idx, sensor_data.pressure, sensor_data.temperature);
 #endif
