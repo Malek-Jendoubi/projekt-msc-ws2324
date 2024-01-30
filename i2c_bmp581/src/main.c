@@ -31,7 +31,6 @@ int main(void)
      */
     rslt = bmp5_interface_init(&dev, BMP5_I2C_INTF);
 
-
     if (rslt == BMP5_OK)
     {
         rslt = bmp5_init(&dev);
