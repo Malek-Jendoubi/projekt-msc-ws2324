@@ -92,8 +92,8 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
     uint8_t int_status;
     struct bmp5_sensor_data sensor_data;
 
-    LOG_INF("\nOutput :\n\n");
-    LOG_INF("Data, Pressure (Pa), Temperature (deg C)\n");
+    printk("\nOutput :\n\n");
+    printk("Data, Pressure (Pa), Temperature (deg C)\n");
 
     while (idx < 50)
     {
@@ -104,10 +104,10 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
             if (rslt == BMP5_OK)
             {
 #ifdef BMP5_USE_FIXED_POINT
-                LOG_INF("%d, %lu, %ld\n", idx, (long unsigned int)sensor_data.pressure,
+                printk("%d, %lu, %ld\n", idx, (long unsigned int)sensor_data.pressure,
                         (long int)sensor_data.temperature);
 #else
-                LOG_INF("%d, %f, %f\n", idx, sensor_data.pressure, sensor_data.temperature);
+                printk("%d, %f, %f\n", idx, sensor_data.pressure, sensor_data.temperature);
 #endif
                 idx++;
             }
@@ -182,44 +182,44 @@ void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
 {
     if (rslt != BMP5_OK)
     {
-        LOG_INF("%s\t", api_name);
+        printk("%s\t", api_name);
         if (rslt == BMP5_E_NULL_PTR)
         {
-            LOG_INF("Error [%d] : Null pointer\r\n", rslt);
+            printk("Error [%d] : Null pointer\r\n", rslt);
         }
         else if (rslt == BMP5_E_COM_FAIL)
         {
-            LOG_INF("Error [%d] : Communication failure\r\n", rslt);
+            printk("Error [%d] : Communication failure\r\n", rslt);
         }
         else if (rslt == BMP5_E_DEV_NOT_FOUND)
         {
-            LOG_INF("Error [%d] : Device not found\r\n", rslt);
+            printk("Error [%d] : Device not found\r\n", rslt);
         }
         else if (rslt == BMP5_E_INVALID_CHIP_ID)
         {
-            LOG_INF("Error [%d] : Invalid chip id\r\n", rslt);
+            printk("Error [%d] : Invalid chip id\r\n", rslt);
         }
         else if (rslt == BMP5_E_POWER_UP)
         {
-            LOG_INF("Error [%d] : Power up error\r\n", rslt);
+            printk("Error [%d] : Power up error\r\n", rslt);
         }
         else if (rslt == BMP5_E_POR_SOFTRESET)
         {
-            LOG_INF("Error [%d] : Power-on reset/softreset failure\r\n", rslt);
+            printk("Error [%d] : Power-on reset/softreset failure\r\n", rslt);
         }
         else if (rslt == BMP5_E_INVALID_POWERMODE)
         {
-            LOG_INF("Error [%d] : Invalid powermode\r\n", rslt);
+            printk("Error [%d] : Invalid powermode\r\n", rslt);
         }
         else
         {
             /* For more error codes refer "*_defs.h" */
-            LOG_INF("Error [%d] : Unknown error code\r\n", rslt);
+            printk("Error [%d] : Unknown error code\r\n", rslt);
         }
     }
     else
     {
         /* For more error codes refer "*_defs.h" */
-        LOG_INF("%s : [%d] BMP5 OK\t", api_name, rslt);
+        printk("%s : [%d] BMP5 OK\t", api_name, rslt);
     }
 }
