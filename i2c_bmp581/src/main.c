@@ -14,6 +14,8 @@
 #include "bmp5.h"
 #include "common.h"
 
+#define PERIOD_MS K_MSEC(10)
+
 /*!
  *  @brief This internal API is used to set configurations of the sensor.
  *
@@ -23,7 +25,6 @@
  *  @return Status of execution.
  */
 static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
-
 
 /*!
  *  @brief This internal API is used to get sensor data.
@@ -52,7 +53,7 @@ int main(void)
 {
     int8_t rslt;
     struct bmp5_dev dev;
-    struct bmp5_osr_odr_press_config osr_odr_press_cfg = { 0 };
+    struct bmp5_osr_odr_press_config osr_odr_press_cfg = {0};
 
     /* Interface reference is given as a parameter
      * For I2C : BMP5_I2C_INTF
@@ -63,6 +64,9 @@ int main(void)
 
     if (rslt == BMP5_OK)
     {
+
+        bmp5_soft_reset(&dev);
+
         rslt = bmp5_init(&dev);
         bmp5_error_codes_print_result("bmp5_init", rslt);
 
@@ -212,11 +216,10 @@ void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
             /* For more error codes refer "*_defs.h" */
             LOG_INF("Error [%d] : Unknown error code\r\n", rslt);
         }
-    }        else
-        {
-            /* For more error codes refer "*_defs.h" */
-            LOG_INF("%s\t", api_name);
-            LOG_INF("[%d] : BMP5 OK\r\n", rslt);
-        }
-
+    }
+    else
+    {
+        /* For more error codes refer "*_defs.h" */
+        LOG_INF("%s : [%d] BMP5 OK\t", api_name, rslt);
+    }
 }
