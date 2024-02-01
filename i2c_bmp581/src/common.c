@@ -43,7 +43,7 @@ BMP5_INTF_RET_TYPE bmp5_i2c_read(uint8_t reg_addr, uint8_t *reg_data, uint32_t l
         rc = i2c_burst_read_dt(&i2c_dev, reg_addr, reg_data, length);
         if (rc != 0)
         {
-            printk("i2c_burst_read_dt error"); // attempt to recover bus if tx failed for any reason
+            printk("i2c_burst_read_dt error\r\n"); // attempt to recover bus if tx failed for any reason
         }
         return rc;
 }
@@ -58,7 +58,7 @@ BMP5_INTF_RET_TYPE bmp5_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uin
 rc = i2c_burst_write_dt(&i2c_dev, reg_addr, reg_data, length);
         if (rc != 0)
         {
-            printk("i2c_burst_write_dt error"); // attempt to recover bus if tx failed for any reason
+            printk("i2c_burst_write_dt error\r\n"); // attempt to recover bus if tx failed for any reason
         }
         return rc;
 }
@@ -95,7 +95,7 @@ int8_t bmp5_interface_init(struct bmp5_dev *bmp5_dev, uint8_t intf)
 
         if (!device_is_ready(i2c_dev.bus))
         {
-            printk("Board I2C: Device is not ready.");
+            printk("Board I2C: Device is not ready.\n");
             return -1;
         }
 

@@ -7,7 +7,6 @@
 #include <zephyr/kernel.h>
 #include <zephyr/device.h>
 #include <zephyr/devicetree.h>
-#include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/logging/log.h>
 
@@ -47,7 +46,7 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
 void bmp5_error_codes_print_result(const char api_name[], int8_t rslt);
 
 /* Register the logger */
-LOG_MODULE_REGISTER(BMPI2C, LOG_LEVEL_DBG);
+//LOG_MODULE_REGISTER(BMPI2C, LOG_LEVEL_DBG);
 
 int main(void)
 {
@@ -89,7 +88,7 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
 {
     int8_t rslt = 0;
     uint8_t idx = 0;
-    uint8_t int_status;
+    uint8_t int_status = 0;
     struct bmp5_sensor_data sensor_data;
 
     printk("\nOutput :\n\n");
@@ -180,9 +179,9 @@ static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, st
  */
 void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
 {
+    printk("%s\r\n", api_name);
     if (rslt != BMP5_OK)
     {
-        printk("%s\t", api_name);
         if (rslt == BMP5_E_NULL_PTR)
         {
             printk("Error [%d] : Null pointer\r\n", rslt);
@@ -220,6 +219,6 @@ void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
     else
     {
         /* For more error codes refer "*_defs.h" */
-        printk("%s : [%d] BMP5 OK\t", api_name, rslt);
+        printk("Error[%d] :  BMP5 OK\r\n", rslt);
     }
 }
