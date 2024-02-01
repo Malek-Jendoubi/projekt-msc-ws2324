@@ -113,15 +113,6 @@ void bmp5_delay_us(uint32_t period_us, void *intf_ptr);
  */
 int8_t bmp5_interface_init(struct bmp5_dev *bmp5_dev, uint8_t intf);
 
-/*!
- *  @brief Prints the execution status of the APIs.
- *
- *  @param[in] api_name : Name of the API whose execution status has to be printed.
- *  @param[in] rslt     : Error code returned by the API whose execution status has to be printed.
- *
- *  @return void.
- */
-void bmp5_error_codes_print_result(const char api_name[], int8_t rslt);
 
 /*!
  * @brief This function deinitializes coines platform

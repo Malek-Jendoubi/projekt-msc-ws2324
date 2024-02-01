@@ -298,14 +298,7 @@ int8_t bmp5_init(struct bmp5_dev *dev)
     {
         dev->chip_id = 0;
 
-        if (dev->intf == BMP5_SPI_INTF)
-        {
-            /* Performing a single read via SPI of registers,
-             * e.g. registers CHIP_ID, before the actual
-             * SPI communication with the device.
-             */
-            rslt = bmp5_get_regs(BMP5_REG_CHIP_ID, &reg_data, 1, dev);
-        }
+//Modified: Removed SPI Check
 
         if (rslt == BMP5_OK)
         {
@@ -348,11 +341,7 @@ int8_t bmp5_get_regs(uint8_t reg_addr, uint8_t *reg_data, uint32_t len, struct b
     /* Proceed if null check is fine */
     if ((rslt == BMP5_OK) && (reg_data != NULL))
     {
-        if (dev->intf == BMP5_SPI_INTF)
-        {
-            /* If interface selected is SPI */
-            reg_addr = reg_addr | BMP5_SPI_RD_MASK;
-        }
+//Modified: Deleted SPI check 
 
         /* Read the data from the reg_addr */
         dev->intf_rslt = dev->read(reg_addr, reg_data, len, dev->intf_ptr);
