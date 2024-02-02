@@ -12,69 +12,64 @@
 // You can also visit the nRF DeviceTree extension documentation at https: //nrfconnect.github.io/vscode-nrf-connect/devicetree/nrfdevicetree.html
 
 
-&i2c0 {
-  /*
-  compatible = "nordic,nrf-twim";
-  zephyr,concat-buf-size = <1024>;
-  */
-  status = "okay";
-  bmp581: bmp581@46 {
+&i2c1 {
+  bmp581: bmp581@47 {
     compatible = "i2c-device";
-    reg = <0x46>;
+    reg = <0x47>;
     label = "BMP581";
   };
+
+  pinctrl-0 = <&i2c1_default>;
+  pinctrl-names = "default";
 };
 
 &pwm0 {
   status = "okay";
 };
-&i2c0_default {
-  group2 {
-    psels = <NRF_PSEL(TWIM_SCL, 0, 26)>;
-    bias-pull-up;
+
+
+&pinctrl {
+  i2c1_default: i2c1_default {
+    group1 {
+      psels = <NRF_PSEL(TWIM_SCL, 0, 26)>, <NRF_PSEL(TWIM_SDA, 0, 25)>;
+    };
   };
 };
 
-&i2c0_default {
+&i2c1_default {
   group1 {
+    psels = <NRF_PSEL(TWIM_SCL, 0, 26)>;
     bias-pull-up;
   };
 };
-&i2c0_default {
+
+&i2c1_default {
+  group1 {
+    psels = <NRF_PSEL(TWIM_SDA, 0, 25)>;
+    bias-pull-up;
+
+  };
+};
+
+&i2c0 {
+  status = "disabled";
+};
+////##################
+/*
+&i2c1_default {
+  group2 {
+    psels = <NRF_PSEL(TWIM_SCL, 0, 26)>, <NRF_PSEL(TWIM_SDA, 0, 25)>;
+  };
+};
+ */
+&i2c1_default {
   group2 {
     psels = <NRF_PSEL(TWIM_SCL, 0, 26)>;
-    nordic,drive-mode = <NRF_DRIVE_H0S1>;
   };
 };
 
-&i2c0_default {
-  group3 {
-    psels = <NRF_PSEL(TWIM_SCL, 0, 26)>;
-    bias-pull-up;
-    nordic,drive-mode = <NRF_DRIVE_S0H1>;
-  };
-};
-
-&i2c0_default {
+&i2c1_default {
   group1 {
     psels = <NRF_PSEL(TWIM_SDA, 0, 25)>, <NRF_PSEL(TWIM_SCL, 0, 26)>;
   };
 };
-
-&i2c1 {
-  status = "disabled";
-};
-
-&i2c0_sleep {
-  group2 {
-    psels = <NRF_PSEL(TWIM_SCL, 0, 26)>;
-    bias-pull-up;
-    low-power-enable;
-  };
-
-  group1 {
-    psels = <NRF_PSEL(TWIM_SDA, 0, 25)>;
-    low-power-enable;
-  };
-};
-/delete-node/ &{/pin-controller/i2c0_sleep/group1/};
