@@ -15,6 +15,9 @@
 
 #define PERIOD_MS K_MSEC(10)
 
+struct bmp5_sensor_data sensor_data[50];
+
+
 /*!
  *  @brief This internal API is used to set configurations of the sensor.
  *
@@ -75,11 +78,13 @@ int main(void)
             bmp5_error_codes_print_result("set_config", rslt);
         }
 
-        if (rslt == BMP5_OK)
-        {
-            rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
-            bmp5_error_codes_print_result("get_sensor_data", rslt);
-        }
+    }
+    while(1)
+    {
+        rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
+        bmp5_error_codes_print_result("get_sensor_data", rslt);
+
+        bmp5_delay_us(1000*500,&dev);
     }
     return rslt;
 }
@@ -89,23 +94,24 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
     int8_t rslt = 0;
     uint8_t idx = 0;
     uint8_t int_status = 0x1;
-    struct bmp5_sensor_data sensor_data;
-    float sensor_pressure[50];
-    float sensor_temp[50];
+/* 
+    long unsigned int sensor_pressure[50];
+    long int sensor_temp[50];
 
+ */
     printk("\nOutput :\n\n");
-    printk("Data, Pressure (Pa), Temperature (deg C)\n");
+    printk("Data, \tPressure (Pa), \tTemperature (deg C)\n");
 
     while (idx < 50)
     {
         if (int_status & BMP5_INT_ASSERTED_DRDY)
         {
-            rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
+            rslt = bmp5_get_sensor_data(&sensor_data[idx], osr_odr_press_cfg, dev);
 
             if (rslt == BMP5_OK)
             {
 #ifdef BMP5_USE_FIXED_POINT
-                printk("%d, %lu, %ld\n", idx, (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
+                printk("%d, \t%lu, \t%ld\n", idx, (long unsigned int)sensor_data[idx].pressure, (long int)sensor_data[idx].temperature);
 #else
                 sensor_pressure[idx] = sensor_data.pressure; //memcpy()
                 sensor_temp[idx] = sensor_data.temperature;
