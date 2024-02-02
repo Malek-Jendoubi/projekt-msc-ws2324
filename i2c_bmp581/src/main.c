@@ -112,11 +112,6 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
             {
 #ifdef BMP5_USE_FIXED_POINT
                 printk("%d, \t%lu, \t%ld\n", idx, (long unsigned int)sensor_data[idx].pressure, (long int)sensor_data[idx].temperature);
-#else
-                sensor_pressure[idx] = sensor_data.pressure; //memcpy()
-                sensor_temp[idx] = sensor_data.temperature;
-                printk("%d, %f2.0, %f\n", idx, sensor_data.pressure, sensor_data.temperature);
-                printk("%d, %f, %f\n", idx, sensor_pressure[idx], sensor_temp[idx]);
 #endif
                 idx++;
             }
