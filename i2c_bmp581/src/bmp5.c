@@ -298,24 +298,23 @@ int8_t bmp5_init(struct bmp5_dev *dev)
     {
         dev->chip_id = 0;
 
-//Modified: Removed SPI Check
-
         if (rslt == BMP5_OK)
         {
             /* Read chip_id */
             rslt = bmp5_get_regs(BMP5_REG_CHIP_ID, &chip_id, 1, dev);
             if (rslt == BMP5_OK)
             {
+/*
                 if (chip_id != 0)
                 {
-                    /* Validate post power-up procedure */
+                    // Validate post power-up procedure
                     rslt = power_up_check(dev);
                 }
                 else
                 {
                     rslt = BMP5_E_INVALID_CHIP_ID;
                 }
-
+*/
                 if (rslt == BMP5_OK)
                 {
                     rslt = validate_chip_id(chip_id, dev);

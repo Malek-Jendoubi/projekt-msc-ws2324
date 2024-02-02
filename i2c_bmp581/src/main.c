@@ -88,8 +88,10 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
 {
     int8_t rslt = 0;
     uint8_t idx = 0;
-    uint8_t int_status = 0;
+    uint8_t int_status = 0x1;
     struct bmp5_sensor_data sensor_data;
+    float sensor_pressure[50];
+    float sensor_temp[50];
 
     printk("\nOutput :\n\n");
     printk("Data, Pressure (Pa), Temperature (deg C)\n");
@@ -103,13 +105,17 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
             if (rslt == BMP5_OK)
             {
 #ifdef BMP5_USE_FIXED_POINT
-                printk("%d, %lu, %ld\n", idx, (long unsigned int)sensor_data.pressure,
-                        (long int)sensor_data.temperature);
+                printk("%d, %lu, %ld\n", idx, (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
 #else
-                printk("%d, %f, %f\n", idx, sensor_data.pressure, sensor_data.temperature);
+                sensor_pressure[idx] = sensor_data.pressure; //memcpy()
+                sensor_temp[idx] = sensor_data.temperature;
+                printk("%d, %f2.0, %f\n", idx, sensor_data.pressure, sensor_data.temperature);
+                printk("%d, %f, %f\n", idx, sensor_pressure[idx], sensor_temp[idx]);
 #endif
                 idx++;
             }
+
+            bmp5_delay_us(10*1000, dev);
         }
     }
 
