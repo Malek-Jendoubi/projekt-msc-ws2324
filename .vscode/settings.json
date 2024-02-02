@@ -5,5 +5,8 @@
     ],
     "nrf-connect.debugging.bindings": {
         "${workspaceFolder}/i2c_bmp581/build": "Launch build"
+    },
+    "files.associations": {
+        "bmp5.h": "c"
     }
 }

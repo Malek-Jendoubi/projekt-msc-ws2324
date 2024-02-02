@@ -17,11 +17,6 @@
 
 /******************************************************************************/
 /*!                         Macro definitions                                 */
-
-/*! BMP5 shuttle id */
-#define BMP5_SHUTTLE_ID_PRIM UINT16_C(0x46)
-#define BMP5_SHUTTLE_ID_SEC UINT16_C(0x47)
-
 #define BMP581 DT_NODELABEL(bmp581)
 
 /******************************************************************************/

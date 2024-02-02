@@ -304,9 +304,6 @@ int8_t bmp5_init(struct bmp5_dev *dev)
         {
             /* Read chip_id */
             rslt = bmp5_get_regs(BMP5_REG_CHIP_ID, &chip_id, 1, dev);
-            printk("bmp5_init->bmp5_get_regs failed\r\n"); // attempt to recover bus if tx failed for any reason
-
-
             if (rslt == BMP5_OK)
             {
                 if (chip_id != 0)
@@ -325,7 +322,7 @@ int8_t bmp5_init(struct bmp5_dev *dev)
                 }
             }else
             {
-                printk("bmp5_init->bmp5_get_regs failed\r\n"); // attempt to recover bus if tx failed for any reason
+                printk("bmp5_init->bmp5_get_regs failed\r\n"); // failed for any reason
             }
             
         }
