@@ -4,19 +4,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/*INCLUDES*/
-#include "main.h"
-#include "timestamp.h"
-
-#include <zephyr/bluetooth/bluetooth.h> /* Bluetooth Stack Include*/
+/* Bluetooth Stack Include*/
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gap.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/addr.h>
-#include <zephyr/bluetooth/conn.h> /* For managing Bluetooth LE Connections */
+/* For managing Bluetooth LE Connections */
+#include <zephyr/bluetooth/conn.h>
 
-LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
+/*INCLUDES*/
+#include "main.h"
+#include "timestamp.h"
+
+/*Set to 1 to print the values from the BMP sensor*/
+#define PRINT_SENSOR_VALUES 0
 
 struct bmp5_sensor_data sensor_data;
 
@@ -25,6 +27,12 @@ static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
 void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout);
 void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
+
+/* Variable that holds callback for MTU negotiation */
+static struct bt_gatt_exchange_params exchange_params;
+/* Forward declaration of exchange_func(): */
+static void exchange_func(struct bt_conn *conn, uint8_t att_err,
+                          struct bt_gatt_exchange_params *params);
 
 /*BLE Connection struct*/
 struct bt_conn *my_conn = NULL;
@@ -48,22 +56,52 @@ static const struct bt_data ad[] = {
 /* Declare the scan response packet */
 static const struct bt_data sd[] = {
     BT_DATA_BYTES(BT_DATA_UUID128_ALL,
-                  BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)),
+                  BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde,
+                                     0x1523, 0x785feabcd123)),
 };
 
 /* Function to update the connection's PHY */
 static void update_phy(struct bt_conn *conn)
 {
-	int err;
-	const struct bt_conn_le_phy_param preferred_phy = {
-		.options = BT_CONN_LE_PHY_OPT_NONE,
-		.pref_rx_phy = BT_GAP_LE_PHY_2M,
-		.pref_tx_phy = BT_GAP_LE_PHY_2M,
-	};
-	err = bt_conn_le_phy_update(conn, &preferred_phy);
-	if (err) {
-		LOG_ERR("bt_conn_le_phy_update() returned %d", err);
-	}
+    int err;
+    const struct bt_conn_le_phy_param preferred_phy = {
+        .options = BT_CONN_LE_PHY_OPT_NONE,
+        .pref_rx_phy = BT_GAP_LE_PHY_2M,
+        .pref_tx_phy = BT_GAP_LE_PHY_2M,
+    };
+    err = bt_conn_le_phy_update(conn, &preferred_phy);
+    if (err)
+    {
+        printk("bt_conn_le_phy_update() returned %d\r\n", err);
+    }
+}
+
+/* Function to update the connection's data length */
+static void update_data_length(struct bt_conn *conn)
+{
+    int err;
+    struct bt_conn_le_data_len_param my_data_len = {
+        .tx_max_len = BT_GAP_DATA_LEN_MAX,
+        .tx_max_time = BT_GAP_DATA_TIME_MAX,
+    };
+    err = bt_conn_le_data_len_update(my_conn, &my_data_len);
+    if (err)
+    {
+        printk("data_len_update failed (err %d)\r\n", err);
+    }
+}
+
+/* Function to update the connection's MTU */
+static void update_mtu(struct bt_conn *conn)
+{
+    int err;
+    exchange_params.func = exchange_func;
+
+    err = bt_gatt_exchange_mtu(conn, &exchange_params);
+    if (err)
+    {
+        printk("bt_gatt_exchange_mtu failed (err %d)\r\n", err);
+    }
 }
 
 /* Implement the callback functions */
@@ -78,7 +116,7 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     /* Increase the connection counter*/
     my_conn = bt_conn_ref(conn);
 
-	/* Declare a structure to store the connection parameters */
+    /* Declare a structure to store the connection parameters */
     struct bt_conn_info info;
     err = bt_conn_get_info(conn, &info);
     if (err)
@@ -91,10 +129,14 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     double connection_interval = info.le.interval * 1.25; // in ms
     uint16_t supervision_timeout = info.le.timeout * 10;  // in ms
     printk("Connection parameters: interval %.2f ms, latency %d intervals, timeout %d ms\n\r",
-            connection_interval, info.le.latency, supervision_timeout);
+           connection_interval, info.le.latency, supervision_timeout);
 
-   	/* Update the PHY mode */
-	update_phy(my_conn);
+    /* Update the PHY mode */
+    update_phy(my_conn);
+
+    /* Update the data length and MTU */
+    update_data_length(my_conn);
+    update_mtu(my_conn);
 
     /* TODO: Turn the connection status LED on */
 }
@@ -107,33 +149,50 @@ void on_disconnected(struct bt_conn *conn, uint8_t reason)
     /* TODO: Turn the connection status LED off */
 }
 
+/* Callback for connection parameter log */
 void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout)
 {
-    double connection_interval = interval*1.25;         // in ms
-    uint16_t supervision_timeout = timeout*10;          // in ms
+    double connection_interval = interval * 1.25; // in ms
+    uint16_t supervision_timeout = timeout * 10;  // in ms
 
     printk("Connection parameters updated: interval %.2f ms, latency %d intervals, timeout %d ms\n\r", connection_interval, latency, supervision_timeout);
 }
 
-/* Callback function to inform about updates in the PHY */
+/* Callback function to log updates in the PHY */
 void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param)
 {
-	// PHY Updated
-	if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_1M) {
-		printk("PHY updated. New PHY: 1M\n\r");
-	} else if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_2M) {
-		printk("PHY updated. New PHY: 2M\n\r");
-	} else if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_CODED_S8) {
-		printk("PHY updated. New PHY: Long Range\n\r");
-	}
+    // PHY Updated
+    if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_1M)
+    {
+        printk("PHY updated. New PHY: 1M\n\r");
+    }
+    else if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_2M)
+    {
+        printk("PHY updated. New PHY: 2M\n\r");
+    }
+    else if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_CODED_S8)
+    {
+        printk("PHY updated. New PHY: Long Range\n\r");
+    }
+}
+
+/* Callback function to log updates in data length */
+void on_le_data_len_updated(struct bt_conn *conn, struct bt_conn_le_data_len_info *info)
+{
+    uint16_t tx_len = info->tx_max_len;
+    uint16_t tx_time = info->tx_max_time;
+    uint16_t rx_len = info->rx_max_len;
+    uint16_t rx_time = info->rx_max_time;
+    printk("Data length updated. Length %d/%d bytes, time %d/%d us\r\n", tx_len, rx_len, tx_time, rx_time);
 }
 
 /* Declare the connection_callback structure */
 struct bt_conn_cb connection_callbacks = {
     .connected = on_connected,
     .disconnected = on_disconnected,
-    .le_param_updated       = on_le_param_updated,
-    .le_phy_updated         = on_le_phy_updated,
+    .le_param_updated = on_le_param_updated,
+    .le_phy_updated = on_le_phy_updated,
+    .le_data_len_updated = on_le_data_len_updated,
 };
 
 int main(void)
@@ -187,10 +246,10 @@ int main(void)
         // Build the frame. eg:"1483228799,101068,23"
         sprintf(packet_ts, "%u,%s\n\r", (uint32_t)timestamp, packet_sensor);
 
-#if 0
+#if PRINT_SENSOR_VALUES
         printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
         printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
-        
+
         adv_mfg_data.pressure_data = (uint16_t)(sensor_data).pressure;
         bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 #endif
@@ -209,14 +268,14 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
         long int sensor_temp[50];
 
      */
-#if 0
+#if PRINT_SENSOR_VALUES
     printk("\nOutput:\n");
     printk("Pressure (Pa), \tTemperature (deg C)\n");
 #endif
     if (int_status & BMP5_INT_ASSERTED_DRDY)
     {
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
-#if 0
+#if PRINT_SENSOR_VALUES
         if (rslt == BMP5_OK)
         {
             printk("%lu, %ld\n\r", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
@@ -348,5 +407,18 @@ void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
             /* For more error codes refer "*_defs.h" */
             printk("Error [%d] : Unknown error code\r\n", rslt);
         }
+    }
+}
+
+/* Implement callback function for MTU exchange */
+static void exchange_func(struct bt_conn *conn, uint8_t att_err,
+                          struct bt_gatt_exchange_params *params)
+{
+    printk("MTU exchange %s\r\n", att_err == 0 ? "successful" : "failed");
+    if (!att_err)
+    {
+        uint16_t payload_mtu =
+            bt_gatt_get_mtu(conn) - 3; // 3 bytes used for Attribute headers.
+        printk("New MTU: %d bytes\r\n", payload_mtu);
     }
 }
