@@ -14,30 +14,23 @@
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/bluetooth/addr.h>
-#include <zephyr/bluetooth/conn.h>      /* For managing Bluetooth LE Connections */
+#include <zephyr/bluetooth/conn.h> /* For managing Bluetooth LE Connections */
+
+LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 struct bmp5_sensor_data sensor_data;
 
-struct bt_conn *my_conn = NULL;
+static void on_connected(struct bt_conn *conn, uint8_t err);
+static void on_disconnected(struct bt_conn *conn, uint8_t reason);
 
-/* Declare the structure for your custom data  */
-typedef struct adv_mfg_data
-{
-    uint8_t company_code;   /* Company Identifier Code. */
-    uint32_t pressure_data; /* Number of times Button 1 is pressed*/
-} adv_mfg_data_type;
+struct bt_conn *my_conn = NULL;
 
 /* Create an LE Advertising Parameters variable */
 static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
-	(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_IDENTITY), /* Connectable advertising and use identity address */
-	BT_GAP_ADV_FAST_INT_MIN_1, /* 0x30 units, 48 units, 30ms */
-	BT_GAP_ADV_FAST_INT_MAX_1, /* 0x60 units, 96 units, 60ms */
-	NULL); /* Set to NULL for undirected advertising */
-
-/*Define Nordic Semiconductor Company Identifier*/
-#define COMPANY_ID_CODE 0x0059
-/* Define and initialize a variable of type adv_mfg_data_type */
-static adv_mfg_data_type adv_mfg_data = {COMPANY_ID_CODE, 101025};
+    (BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_IDENTITY), /* Connectable advertising and use identity address */
+    BT_GAP_ADV_FAST_INT_MIN_1,                                /* 0x30 units, 48 units, 30ms */
+    BT_GAP_ADV_FAST_INT_MAX_1,                                /* 0x60 units, 96 units, 60ms */
+    NULL);                                                    /* Set to NULL for undirected advertising */
 
 /* Declare the advertising packet */
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
@@ -62,6 +55,22 @@ void on_connected(struct bt_conn *conn, uint8_t err)
         return;
     }
     printk("Connected\n\r");
+
+	/* Declare a structure to store the connection parameters */
+    struct bt_conn_info info;
+    err = bt_conn_get_info(conn, &info);
+    if (err)
+    {
+        printk("bt_conn_get_info() returned %d", err);
+        return;
+    }
+
+    /* Add the connection parameters to your log */
+    double connection_interval = info.le.interval * 1.25; // in ms
+    uint16_t supervision_timeout = info.le.timeout * 10;  // in ms
+    printk("Connection parameters: interval %.2f ms, latency %d intervals, timeout %d ms",
+            connection_interval, info.le.latency, supervision_timeout);
+
     my_conn = bt_conn_ref(conn);
     /* TODO: Turn the connection status LED on */
 }
@@ -130,14 +139,14 @@ int main(void)
         timestamp = OS_GET_TIME();
         // Build the frame. eg:"1483228799,101068,23"
         sprintf(packet_ts, "%u,%s\n\r", (uint32_t)timestamp, packet_sensor);
-        // CBPRINTF_STATIC_PACKAGE(&packet_ts, 20, 40, 0, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
 
-        //printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
-        //printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
-
+#if 0
+        printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
+        printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
+        
         adv_mfg_data.pressure_data = (uint16_t)(sensor_data).pressure;
-
-        //bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+        bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+#endif
 
         bmp5_delay_us(1000 * 500, &dev);
     }
@@ -192,7 +201,6 @@ void bluetooth_advertiser_init()
         return;
     }
 }
-
 
 static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
 {
@@ -251,7 +259,6 @@ static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, st
 
     return rslt;
 }
-
 
 /*!
  *  @brief Prints the execution status of the APIs.
