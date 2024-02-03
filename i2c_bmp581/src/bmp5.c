@@ -44,9 +44,10 @@
 
 /***************************************************************************/
 
-/*!              Global Variable
- ****************************************************************************/
-
+/*!              Global Define
+****************************************************************************/
+/*TODO: Power Up check never passes, BMP SENSOR doesn't finish configuring*/
+#define POWERUP_CHECK 0 
 /******************************************************************************/
 
 /*!         Local Function Prototypes
@@ -85,8 +86,9 @@ static int8_t validate_chip_id(uint8_t chip_id, struct bmp5_dev *dev);
  * @retval 0 -> Success
  * @retval <0 -> Fail
  */
+#if POWERUP_CHECK
 static int8_t power_up_check(struct bmp5_dev *dev);
-
+#endif
 /*!
  * @brief This internal API is used to check if sensor is in deepstandby mode.
  *
@@ -288,7 +290,6 @@ static int8_t set_nvm_addr(uint8_t nvm_addr, uint8_t prog_en, struct bmp5_dev *d
 int8_t bmp5_init(struct bmp5_dev *dev)
 {
     int8_t rslt;
-    uint8_t reg_data;
     uint8_t chip_id;
 
     /* Check for null pointer in the device structure */
@@ -321,7 +322,6 @@ int8_t bmp5_init(struct bmp5_dev *dev)
                     rslt = validate_chip_id(chip_id, dev);
                 }
             }
-            
         }
     }
 
@@ -1452,6 +1452,8 @@ static int8_t validate_chip_id(uint8_t chip_id, struct bmp5_dev *dev)
     return rslt;
 }
 
+
+#if POWERUP_CHECK
 /*!
  * @brief This internal API is used to validate the post power-up procedure.
  */
@@ -1491,7 +1493,7 @@ static int8_t power_up_check(struct bmp5_dev *dev)
 
     return rslt;
 }
-
+#endif
 /*!
  * @brief This internal API is used to check if sensor is in deepstandby mode.
  */
