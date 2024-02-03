@@ -7,13 +7,18 @@
 /*INCLUDES*/
 #include "main.h"
 #include "timestamp.h"
-/* Bluetooth Stack Includes*/
+
+#include <zephyr/bluetooth/bluetooth.h> /* Bluetooth Stack Include*/
 #include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/gap.h>
+#include <zephyr/bluetooth/gatt.h>
+#include <zephyr/bluetooth/uuid.h>
+#include <zephyr/bluetooth/addr.h>
+#include <zephyr/bluetooth/conn.h>      /* For managing Bluetooth LE Connections */
 
 struct bmp5_sensor_data sensor_data;
 
-/*Define Nordic Semiconductor Company Identifier*/
-#define COMPANY_ID_CODE 0x0059
+struct bt_conn *my_conn = NULL;
 
 /* Declare the structure for your custom data  */
 typedef struct adv_mfg_data
@@ -23,34 +28,57 @@ typedef struct adv_mfg_data
 } adv_mfg_data_type;
 
 /* Create an LE Advertising Parameters variable */
-static struct bt_le_adv_param *adv_param =
-    BT_LE_ADV_PARAM(BT_LE_ADV_OPT_NONE,
-                    1600, /*Minimum advertising interval N = 1000ms/0,625ms = 1600*/
-                    1601,
-                    NULL);
+static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
+	(BT_LE_ADV_OPT_CONNECTABLE | BT_LE_ADV_OPT_USE_IDENTITY), /* Connectable advertising and use identity address */
+	BT_GAP_ADV_FAST_INT_MIN_1, /* 0x30 units, 48 units, 30ms */
+	BT_GAP_ADV_FAST_INT_MAX_1, /* 0x60 units, 96 units, 60ms */
+	NULL); /* Set to NULL for undirected advertising */
 
+/*Define Nordic Semiconductor Company Identifier*/
+#define COMPANY_ID_CODE 0x0059
 /* Define and initialize a variable of type adv_mfg_data_type */
 static adv_mfg_data_type adv_mfg_data = {COMPANY_ID_CODE, 101025};
 
-static unsigned char url_data[] = {0x17, '/', '/', 'a', 'c', 'a', 'd', 'e', 'm',
-                                   'y', '.', 'n', 'o', 'r', 'd', 'i', 'c', 's',
-                                   'e', 'm', 'i', '.', 'c', 'o', 'm'};
-
+/* Declare the advertising packet */
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 
-/* Declare the advertising packet */
 static const struct bt_data ad[] = {
-    BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_NO_BREDR),
+    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
     BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
-    /* STEP 3 - Include the Manufacturer Specific Data in the advertising packet. */
-    BT_DATA(BT_DATA_MANUFACTURER_DATA, (unsigned char *)&adv_mfg_data, sizeof(adv_mfg_data)),
 };
 
 static const struct bt_data sd[] = {
-    BT_DATA(BT_DATA_URI, url_data, sizeof(url_data)),
+    BT_DATA_BYTES(BT_DATA_UUID128_ALL,
+                  BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)),
 };
 
+/* Implement the callback functions */
+void on_connected(struct bt_conn *conn, uint8_t err)
+{
+    if (err)
+    {
+        printk("Connection error %d\n\r", err);
+        return;
+    }
+    printk("Connected\n\r");
+    my_conn = bt_conn_ref(conn);
+    /* TODO: Turn the connection status LED on */
+}
+
+void on_disconnected(struct bt_conn *conn, uint8_t reason)
+{
+    printk("Disconnected. Reason %d\n\r", reason);
+    bt_conn_unref(my_conn);
+
+    /* TODO: Turn the connection status LED off */
+}
+
+/* Declare the connection_callback structure */
+struct bt_conn_cb connection_callbacks = {
+    .connected = on_connected,
+    .disconnected = on_disconnected,
+};
 
 int main(void)
 {
@@ -102,14 +130,14 @@ int main(void)
         timestamp = OS_GET_TIME();
         // Build the frame. eg:"1483228799,101068,23"
         sprintf(packet_ts, "%u,%s\n\r", (uint32_t)timestamp, packet_sensor);
-        //CBPRINTF_STATIC_PACKAGE(&packet_ts, 20, 40, 0, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
+        // CBPRINTF_STATIC_PACKAGE(&packet_ts, 20, 40, 0, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
 
-        printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
-        printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
+        //printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
+        //printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
 
         adv_mfg_data.pressure_data = (uint16_t)(sensor_data).pressure;
 
-        bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+        //bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 
         bmp5_delay_us(1000 * 500, &dev);
     }
@@ -142,6 +170,29 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
     }
     return rslt;
 }
+
+void bluetooth_advertiser_init()
+{ /* Enable the Bluetooth LE stack */
+    int bt_err;
+
+    bt_conn_cb_register(&connection_callbacks);
+
+    bt_err = bt_enable(NULL);
+    if (bt_err)
+    {
+        printk("Bluetooth init failed (err %d)\n", bt_err);
+        return;
+    }
+    printk("Bluetooth initialized\n");
+    /* Start advertising */
+    bt_err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+    if (bt_err)
+    {
+        printk("Advertising failed to start (err %d)\n", bt_err);
+        return;
+    }
+}
+
 
 static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
 {
@@ -201,25 +252,6 @@ static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, st
     return rslt;
 }
 
-void bluetooth_advertiser_init()
-{ /* Enable the Bluetooth LE stack */
-    int bt_err;
-
-    bt_err = bt_enable(NULL);
-    if (bt_err)
-    {
-        printk("Bluetooth init failed (err %d)\n", bt_err);
-        return;
-    }
-    printk("Bluetooth initialized\n");
-    /* Start advertising */
-    bt_err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
-    if (bt_err)
-    {
-        printk("Advertising failed to start (err %d)\n", bt_err);
-        return;
-    }
-}
 
 /*!
  *  @brief Prints the execution status of the APIs.
