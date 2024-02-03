@@ -3,12 +3,12 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/cbprintf.h>    //for string operations
 
 #include "bmp5.h"
 #include "common.h"
 
-#define BMP5_USE_FIXED_POINT 1
-
+#define BMP5_USE_FIXED_POINT
 /*!
  *  @brief This internal API is used to set configurations of the sensor.
  *

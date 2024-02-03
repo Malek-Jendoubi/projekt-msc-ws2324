@@ -6,12 +6,9 @@
 
 /*INCLUDES*/
 #include "main.h"
-
+#include "timestamp.h"
 /* Bluetooth Stack Includes*/
 #include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/gap.h>
-
-void bluetooth_advertiser_init();
 
 struct bmp5_sensor_data sensor_data;
 
@@ -54,8 +51,15 @@ static const struct bt_data sd[] = {
     BT_DATA(BT_DATA_URI, url_data, sizeof(url_data)),
 };
 
+
 int main(void)
 {
+    /* Declare packets for payload*/
+    char packet_ts[40] = "";
+    char packet_sensor[20] = "";
+    /*Variables for the frame -- Timestamp*/
+    uint64_t timestamp = 0;
+
     int8_t rslt;
 
     struct bmp5_dev dev;
@@ -91,33 +95,25 @@ int main(void)
         rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
         bmp5_error_codes_print_result("get_sensor_data", rslt);
 
+        // Build the frame. eg:"101068,23"
+        sprintf(&packet_sensor, "%lu,%ld", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
+
+        // Get Timestamp
+        timestamp = OS_GET_TIME();
+        // Build the frame. eg:"1483228799,101068,23"
+        sprintf(&packet_ts, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
+        //CBPRINTF_STATIC_PACKAGE(&packet_ts, 20, 40, 0, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
+
+        printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
+        printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
+
         adv_mfg_data.pressure_data = (uint16_t)(sensor_data).pressure;
-        // adv_mfg_data.pressure_data++;
+
         bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
 
         bmp5_delay_us(1000 * 500, &dev);
     }
     return rslt;
-}
-
-void bluetooth_advertiser_init()
-{ /* Enable the Bluetooth LE stack */
-    int bt_err;
-
-    bt_err = bt_enable(NULL);
-    if (bt_err)
-    {
-        printk("Bluetooth init failed (err %d)\n", bt_err);
-        return;
-    }
-    printk("Bluetooth initialized\n");
-    /* Start advertising */
-    bt_err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
-    if (bt_err)
-    {
-        printk("Advertising failed to start (err %d)\n", bt_err);
-        return;
-    }
 }
 
 static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
@@ -129,19 +125,21 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
         long int sensor_temp[50];
 
      */
-    printk("Output :\n");
+#if 0
+    printk("\nOutput:\n");
     printk("Pressure (Pa), \tTemperature (deg C)\n");
-        if (int_status & BMP5_INT_ASSERTED_DRDY)
+#endif
+    if (int_status & BMP5_INT_ASSERTED_DRDY)
+    {
+        rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
+#if 0
+        if (rslt == BMP5_OK)
         {
-            rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
-
-            if (rslt == BMP5_OK)
-            {
-                printk("%lu, \t%ld\n", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
-            }
-
-            bmp5_delay_us(10 * 1000, dev);
+            printk("%lu, %ld\n\r", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
         }
+#endif
+        bmp5_delay_us(10 * 1000, dev);
+    }
     return rslt;
 }
 
@@ -201,6 +199,26 @@ static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, st
     }
 
     return rslt;
+}
+
+void bluetooth_advertiser_init()
+{ /* Enable the Bluetooth LE stack */
+    int bt_err;
+
+    bt_err = bt_enable(NULL);
+    if (bt_err)
+    {
+        printk("Bluetooth init failed (err %d)\n", bt_err);
+        return;
+    }
+    printk("Bluetooth initialized\n");
+    /* Start advertising */
+    bt_err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+    if (bt_err)
+    {
+        printk("Advertising failed to start (err %d)\n", bt_err);
+        return;
+    }
 }
 
 /*!
