@@ -15,7 +15,6 @@ extern "C" {
 #include <stdio.h>
 #include "bmp5.h"
 
-#define BMP5_USE_FIXED_POINT
 
 /***************************************************************************/
 

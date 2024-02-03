@@ -12,4 +12,5 @@ target_include_directories(app PRIVATE bmp5)
 
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/bmp5.c)
+target_sources(app PRIVATE src/bt-periph.c)
 target_sources(app PRIVATE src/common.c)

@@ -4,122 +4,144 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
-#include <zephyr/devicetree.h>
-#include <zephyr/drivers/i2c.h>
-#include <zephyr/logging/log.h>
+/*INCLUDES*/
+#include "main.h"
 
-#include "bmp5.h"
-#include "common.h"
+/* Bluetooth Stack Includes*/
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/gap.h>
 
-#define PERIOD_MS K_MSEC(10)
+void bluetooth_advertiser_init();
 
-struct bmp5_sensor_data sensor_data[50];
+struct bmp5_sensor_data sensor_data;
 
+/*Define Nordic Semiconductor Company Identifier*/
+#define COMPANY_ID_CODE 0x0059
 
-/*!
- *  @brief This internal API is used to set configurations of the sensor.
- *
- *  @param[in,out] osr_odr_press_cfg : Structure instance of bmp5_osr_odr_press_config
- *  @param[in] dev                   : Structure instance of bmp5_dev.
- *
- *  @return Status of execution.
- */
-static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
+/* Declare the structure for your custom data  */
+typedef struct adv_mfg_data
+{
+    uint8_t company_code;   /* Company Identifier Code. */
+    uint16_t pressure_data; /* Number of times Button 1 is pressed*/
+} adv_mfg_data_type;
 
-/*!
- *  @brief This internal API is used to get sensor data.
- *
- *  @param[in] osr_odr_press_cfg : Structure instance of bmp5_osr_odr_press_config
- *  @param[in] dev               : Structure instance of bmp5_dev.
- *
- *  @return Status of execution.
- */
-static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
+/* Create an LE Advertising Parameters variable */
+static struct bt_le_adv_param *adv_param =
+    BT_LE_ADV_PARAM(BT_LE_ADV_OPT_NONE,
+                    1600, /*Minimum advertising interval N = 1000ms/0,625ms = 1600*/
+                    1601,
+                    NULL);
 
-/*!
- *  @brief Prints the execution status of the APIs.
- *
- *  @param[in] api_name : Name of the API whose execution status has to be printed.
- *  @param[in] rslt     : Error code returned by the API whose execution status has to be printed.
- *
- *  @return void.
- */
-void bmp5_error_codes_print_result(const char api_name[], int8_t rslt);
+/* Define and initialize a variable of type adv_mfg_data_type */
+static adv_mfg_data_type adv_mfg_data = {COMPANY_ID_CODE, 101025};
 
-/* Register the logger */
-//LOG_MODULE_REGISTER(BMPI2C, LOG_LEVEL_DBG);
+static unsigned char url_data[] = {0x17, '/', '/', 'a', 'c', 'a', 'd', 'e', 'm',
+                                   'y', '.', 'n', 'o', 'r', 'd', 'i', 'c', 's',
+                                   'e', 'm', 'i', '.', 'c', 'o', 'm'};
+
+#define DEVICE_NAME CONFIG_BT_DEVICE_NAME
+#define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
+
+/* Declare the advertising packet */
+static const struct bt_data ad[] = {
+    BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_NO_BREDR),
+    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
+    /* STEP 3 - Include the Manufacturer Specific Data in the advertising packet. */
+    BT_DATA(BT_DATA_MANUFACTURER_DATA, (unsigned char *)&adv_mfg_data, sizeof(adv_mfg_data)),
+};
+
+static const struct bt_data sd[] = {
+    BT_DATA(BT_DATA_URI, url_data, sizeof(url_data)),
+};
 
 int main(void)
 {
     int8_t rslt;
+
     struct bmp5_dev dev;
     struct bmp5_osr_odr_press_config osr_odr_press_cfg = {0};
 
+    bluetooth_advertiser_init();
+
+    int8_t bmp5_rslt;
     /* Interface reference is given as a parameter
      * For I2C : BMP5_I2C_INTF
      * For SPI : BMP5_SPI_INTF
      */
-    rslt = bmp5_interface_init(&dev, BMP5_I2C_INTF);
-    bmp5_error_codes_print_result("bmp5_interface_init", rslt);
+    bmp5_rslt = bmp5_interface_init(&dev, BMP5_I2C_INTF);
+    bmp5_error_codes_print_result("bmp5_interface_init", bmp5_rslt);
 
-    if (rslt == BMP5_OK)
+    if (bmp5_rslt == BMP5_OK)
     {
 
         bmp5_soft_reset(&dev);
 
-        rslt = bmp5_init(&dev);
-        bmp5_error_codes_print_result("bmp5_init", rslt);
+        bmp5_rslt = bmp5_init(&dev);
+        bmp5_error_codes_print_result("bmp5_init", bmp5_rslt);
 
-        if (rslt == BMP5_OK)
+        if (bmp5_rslt == BMP5_OK)
         {
-            rslt = set_config(&osr_odr_press_cfg, &dev);
-            bmp5_error_codes_print_result("set_config", rslt);
+            bmp5_rslt = set_config(&osr_odr_press_cfg, &dev);
+            bmp5_error_codes_print_result("set_config", bmp5_rslt);
         }
-
     }
-    while(1)
+
+    while (1)
     {
         rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
         bmp5_error_codes_print_result("get_sensor_data", rslt);
 
-        bmp5_delay_us(1000*500,&dev);
+        adv_mfg_data.pressure_data = (uint16_t)(sensor_data).pressure;
+        // adv_mfg_data.pressure_data++;
+        bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+
+        bmp5_delay_us(1000 * 500, &dev);
     }
     return rslt;
+}
+
+void bluetooth_advertiser_init()
+{ /* Enable the Bluetooth LE stack */
+    int bt_err;
+
+    bt_err = bt_enable(NULL);
+    if (bt_err)
+    {
+        printk("Bluetooth init failed (err %d)\n", bt_err);
+        return;
+    }
+    printk("Bluetooth initialized\n");
+    /* Start advertising */
+    bt_err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
+    if (bt_err)
+    {
+        printk("Advertising failed to start (err %d)\n", bt_err);
+        return;
+    }
 }
 
 static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
 {
     int8_t rslt = 0;
-    uint8_t idx = 0;
     uint8_t int_status = 0x1;
-/* 
-    long unsigned int sensor_pressure[50];
-    long int sensor_temp[50];
+    /*
+        long unsigned int sensor_pressure[50];
+        long int sensor_temp[50];
 
- */
-    printk("\nOutput :\n\n");
-    printk("Data, \tPressure (Pa), \tTemperature (deg C)\n");
-
-    while (idx < 50)
-    {
+     */
+    printk("Output :\n");
+    printk("Pressure (Pa), \tTemperature (deg C)\n");
         if (int_status & BMP5_INT_ASSERTED_DRDY)
         {
-            rslt = bmp5_get_sensor_data(&sensor_data[idx], osr_odr_press_cfg, dev);
+            rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
 
             if (rslt == BMP5_OK)
             {
-#ifdef BMP5_USE_FIXED_POINT
-                printk("%d, \t%lu, \t%ld\n", idx, (long unsigned int)sensor_data[idx].pressure, (long int)sensor_data[idx].temperature);
-#endif
-                idx++;
+                printk("%lu, \t%ld\n", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
             }
 
-            bmp5_delay_us(10*1000, dev);
+            bmp5_delay_us(10 * 1000, dev);
         }
-    }
-
     return rslt;
 }
 
@@ -186,9 +208,9 @@ static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, st
  */
 void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
 {
-    printk("%s\r\n", api_name);
     if (rslt != BMP5_OK)
     {
+        printk("%s\r\n", api_name);
         if (rslt == BMP5_E_NULL_PTR)
         {
             printk("Error [%d] : Null pointer\r\n", rslt);
@@ -222,10 +244,5 @@ void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
             /* For more error codes refer "*_defs.h" */
             printk("Error [%d] : Unknown error code\r\n", rslt);
         }
-    }
-    else
-    {
-        /* For more error codes refer "*_defs.h" */
-        printk("Error[%d] :  BMP5 OK\r\n", rslt);
     }
 }

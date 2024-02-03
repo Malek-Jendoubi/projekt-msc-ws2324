@@ -319,9 +319,6 @@ int8_t bmp5_init(struct bmp5_dev *dev)
                 {
                     rslt = validate_chip_id(chip_id, dev);
                 }
-            }else
-            {
-                printk("bmp5_init->bmp5_get_regs failed\r\n"); // failed for any reason
             }
             
         }
