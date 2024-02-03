@@ -26,6 +26,9 @@
 /* time necessary to read the time */
 extern uint32_t tm_off;
 
+void timestamp_serialize();
+
+
 static inline uint32_t TIME_STAMP_DELTA_GET(uint32_t ts)
 {
     uint32_t t;

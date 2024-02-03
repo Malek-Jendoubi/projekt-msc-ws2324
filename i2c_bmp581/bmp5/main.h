@@ -9,6 +9,10 @@
 #include "common.h"
 
 #define BMP5_USE_FIXED_POINT
+
+void bluetooth_advertiser_init();
+
+
 /*!
  *  @brief This internal API is used to set configurations of the sensor.
  *

@@ -19,7 +19,7 @@ struct bmp5_sensor_data sensor_data;
 typedef struct adv_mfg_data
 {
     uint8_t company_code;   /* Company Identifier Code. */
-    uint16_t pressure_data; /* Number of times Button 1 is pressed*/
+    uint32_t pressure_data; /* Number of times Button 1 is pressed*/
 } adv_mfg_data_type;
 
 /* Create an LE Advertising Parameters variable */
@@ -96,12 +96,12 @@ int main(void)
         bmp5_error_codes_print_result("get_sensor_data", rslt);
 
         // Build the frame. eg:"101068,23"
-        sprintf(&packet_sensor, "%lu,%ld", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
+        sprintf(packet_sensor, "%lu,%ld", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
 
         // Get Timestamp
         timestamp = OS_GET_TIME();
         // Build the frame. eg:"1483228799,101068,23"
-        sprintf(&packet_ts, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
+        sprintf(packet_ts, "%u,%s\n\r", (uint32_t)timestamp, packet_sensor);
         //CBPRINTF_STATIC_PACKAGE(&packet_ts, 20, 40, 0, "%lu,%s\n\r", (uint32_t)timestamp, packet_sensor);
 
         printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
