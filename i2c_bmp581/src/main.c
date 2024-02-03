@@ -20,9 +20,13 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 
 struct bmp5_sensor_data sensor_data;
 
+/*Prototype for BLE connection callbacks*/
 static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
+void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout);
+void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
 
+/*BLE Connection struct*/
 struct bt_conn *my_conn = NULL;
 
 /* Create an LE Advertising Parameters variable */
@@ -41,10 +45,26 @@ static const struct bt_data ad[] = {
     BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
 };
 
+/* Declare the scan response packet */
 static const struct bt_data sd[] = {
     BT_DATA_BYTES(BT_DATA_UUID128_ALL,
                   BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)),
 };
+
+/* Function to update the connection's PHY */
+static void update_phy(struct bt_conn *conn)
+{
+	int err;
+	const struct bt_conn_le_phy_param preferred_phy = {
+		.options = BT_CONN_LE_PHY_OPT_NONE,
+		.pref_rx_phy = BT_GAP_LE_PHY_2M,
+		.pref_tx_phy = BT_GAP_LE_PHY_2M,
+	};
+	err = bt_conn_le_phy_update(conn, &preferred_phy);
+	if (err) {
+		LOG_ERR("bt_conn_le_phy_update() returned %d", err);
+	}
+}
 
 /* Implement the callback functions */
 void on_connected(struct bt_conn *conn, uint8_t err)
@@ -55,23 +75,27 @@ void on_connected(struct bt_conn *conn, uint8_t err)
         return;
     }
     printk("Connected\n\r");
+    /* Increase the connection counter*/
+    my_conn = bt_conn_ref(conn);
 
 	/* Declare a structure to store the connection parameters */
     struct bt_conn_info info;
     err = bt_conn_get_info(conn, &info);
     if (err)
     {
-        printk("bt_conn_get_info() returned %d", err);
+        printk("bt_conn_get_info() returned %d\n\r", err);
         return;
     }
 
     /* Add the connection parameters to your log */
     double connection_interval = info.le.interval * 1.25; // in ms
     uint16_t supervision_timeout = info.le.timeout * 10;  // in ms
-    printk("Connection parameters: interval %.2f ms, latency %d intervals, timeout %d ms",
+    printk("Connection parameters: interval %.2f ms, latency %d intervals, timeout %d ms\n\r",
             connection_interval, info.le.latency, supervision_timeout);
 
-    my_conn = bt_conn_ref(conn);
+   	/* Update the PHY mode */
+	update_phy(my_conn);
+
     /* TODO: Turn the connection status LED on */
 }
 
@@ -83,10 +107,33 @@ void on_disconnected(struct bt_conn *conn, uint8_t reason)
     /* TODO: Turn the connection status LED off */
 }
 
+void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout)
+{
+    double connection_interval = interval*1.25;         // in ms
+    uint16_t supervision_timeout = timeout*10;          // in ms
+
+    printk("Connection parameters updated: interval %.2f ms, latency %d intervals, timeout %d ms\n\r", connection_interval, latency, supervision_timeout);
+}
+
+/* Callback function to inform about updates in the PHY */
+void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param)
+{
+	// PHY Updated
+	if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_1M) {
+		printk("PHY updated. New PHY: 1M\n\r");
+	} else if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_2M) {
+		printk("PHY updated. New PHY: 2M\n\r");
+	} else if (param->tx_phy == BT_CONN_LE_TX_POWER_PHY_CODED_S8) {
+		printk("PHY updated. New PHY: Long Range\n\r");
+	}
+}
+
 /* Declare the connection_callback structure */
 struct bt_conn_cb connection_callbacks = {
     .connected = on_connected,
     .disconnected = on_disconnected,
+    .le_param_updated       = on_le_param_updated,
+    .le_phy_updated         = on_le_phy_updated,
 };
 
 int main(void)
