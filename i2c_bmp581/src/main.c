@@ -12,12 +12,12 @@
 
 struct bmp5_sensor_data sensor_data;
 
-/* Declare buffers for payload*/
-char frame_payload[20];
-/* packet_ts[20] = "1483228799,101068\r\n" */
+/* packet_ts[20] = "1483228799" */
 char frame_ts[20];
 /* packet_sensor[9] = "101068" */
-char frame_sensor[9];
+char frame_sensor[16];
+/* Declare buffers for payload = "1483228799,101068\r\n" */
+char frame_payload[40];
 /*Variables for the frame -- Timestamp*/
 uint32_t timestamp_ms = 0;
 
