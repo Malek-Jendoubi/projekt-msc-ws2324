@@ -22,22 +22,19 @@
 
 struct bmp5_sensor_data sensor_data;
 
-/*Declare a ring buffer to hold the sensor data before sending them*/
-#define SENSOR_READ 0xAC
-#define MY_RING_BUF_WORDS 1
-RING_BUF_ITEM_DECLARE(sensor_ring_buf, MY_RING_BUF_WORDS);
-
-
+/* Declare buffers for payload*/
+/* packet_ts[20] = "1483228799,101068,23" */
+char frame_ts[20] = "";
+/* packet_sensor[9] = "101068,23" */
+char frame_sensor[9] = "";
+/*Variables for the frame -- Timestamp*/
+uint64_t timestamp = 0;
 
 /*Prototype for BLE connection callbacks*/
 static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
 void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout);
 void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
-
-/* Ring buffer put helper function*/
-void rb_put(struct ring_buf sensor_ring_buf, uint8_t *my_data);
-
 
 /* Variable that holds callback for MTU negotiation */
 static struct bt_gatt_exchange_params exchange_params;
@@ -56,12 +53,15 @@ static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
     NULL);                                                    /* Set to NULL for undirected advertising */
 
 /* Declare the advertising packet */
-#define DEVICE_NAME CONFIG_BT_DEVICE_NAME
-#define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
+static volatile uint8_t mfg_data[] = {0x00, 0x00, 0xaa, 0xbb};
 
 static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
+    BT_DATA(BT_DATA_MANUFACTURER_DATA, mfg_data, 4),
+
+    BT_DATA_BYTES(BT_DATA_UUID128_ALL,
+                  0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12,
+                  0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12),
 };
 
 /* Declare the scan response packet */
@@ -208,14 +208,6 @@ struct bt_conn_cb connection_callbacks = {
 
 int main(void)
 {
-    /* Declare buffers for payload*/
-    /* packet_ts[20] = "1483228799,101068,23" */
-    char frame_ts[20] = "";
-    /* packet_sensor[9] = "101068,23" */
-    char frame_sensor[9] = "";
-    /*Variables for the frame -- Timestamp*/
-    uint64_t timestamp = 0;
-
     int8_t rslt;
 
     struct bmp5_dev dev;
@@ -246,28 +238,15 @@ int main(void)
         }
     }
 
-    int rb_counter = 0;
-
     while (1)
     {
-        rb_counter ++;
         /* Get sensor data from the BMP581*/
-        rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
+        bmp5_rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
         bmp5_error_codes_print_result("get_sensor_data", rslt);
-
-        /* Build the frame. eg:"101068,23"*/
-        sprintf(frame_sensor, "%lu,%ld", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
-
-        /* Get Timestamp and add it to the frame. eg:"1483228799,101068,23"*/
-        timestamp = OS_GET_TIME();
-        sprintf(frame_ts, "%u,%s\n\r", (uint32_t)timestamp, frame_sensor);
 
         /* Print the two frames*/
         printk("frame_sensor[%d]:\t%s\n\r", strlen(frame_sensor), frame_sensor);
         printk("frame_ts[%d]:\t%s\n\r", strlen(frame_ts), frame_ts);
-
-        rb_put(sensor_ring_buf, (uint8_t)frame_ts);
-
         k_msleep(1000);
     }
     return rslt;
@@ -280,8 +259,15 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
 
     if (int_status & BMP5_INT_ASSERTED_DRDY)
     {
+        /* Get Timestamp and add it to the frame. eg:"1483228799"*/
+        timestamp = OS_GET_TIME();
+        sprintf(frame_ts, "%010lu", (long unsigned int)timestamp);
+
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
     }
+    /* Build the frame. eg:"101068"*/
+    sprintf(frame_sensor, "%06lu", (long unsigned int)sensor_data.pressure);
+
     return rslt;
 }
 
@@ -414,16 +400,4 @@ static void exchange_func(struct bt_conn *conn, uint8_t att_err,
             bt_gatt_get_mtu(conn) - 3; // 3 bytes used for Attribute headers.
         printk("New MTU: %d bytes\r\n", payload_mtu);
     }
-}
-
-void rb_put(struct ring_buf sensor_ring_buf, uint8_t *my_data)
-{
-    uint32_t ret;
-
-    ret = ring_buf_item_put(&sensor_ring_buf, SENSOR_READ, 0, my_data, MY_RING_BUF_WORDS);
-    if (ret != MY_RING_BUF_WORDS)
-    {
-        printk("not enough room, partial copy.");
-    }
-    return ret;
 }
