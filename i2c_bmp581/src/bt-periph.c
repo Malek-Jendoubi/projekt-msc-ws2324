@@ -1,12 +1,4 @@
-/* Bluetooth Stack Include*/
-#include <zephyr/bluetooth/bluetooth.h>
-#include <zephyr/bluetooth/gap.h>
-#include <zephyr/bluetooth/gatt.h>
-#include <zephyr/bluetooth/uuid.h>
-#include <zephyr/bluetooth/addr.h>
-/* For managing Bluetooth LE Connections */
-#include <zephyr/bluetooth/conn.h>
-
+#include "bt-periph.h"
 /*Prototype for BLE connection callbacks*/
 static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
@@ -15,12 +7,18 @@ void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
 
 /* Variable that holds callback for MTU negotiation */
 static struct bt_gatt_exchange_params exchange_params;
+
 /* Forward declaration of exchange_func(): */
 static void exchange_func(struct bt_conn *conn, uint8_t att_err,
                           struct bt_gatt_exchange_params *params);
 
 /*BLE Connection struct*/
 struct bt_conn *my_conn = NULL;
+
+/* Define the characteristic value storage */
+//static uint8_t sensor_value[20] = "Example 20Byte Str";
+
+/* GATT characteristic and service Declaration */
 
 /* Create an LE Advertising Parameters variable */
 static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
@@ -35,7 +33,6 @@ static volatile uint8_t mfg_data[] = {0x00, 0x00, 0xaa, 0xbb};
 static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
     BT_DATA(BT_DATA_MANUFACTURER_DATA, mfg_data, 4),
-
     BT_DATA_BYTES(BT_DATA_UUID128_ALL,
                   0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12,
                   0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12),
@@ -203,6 +200,7 @@ void bluetooth_advertiser_init()
 
     bt_conn_cb_register(&connection_callbacks);
 
+    
     bt_err = bt_enable(NULL);
     if (bt_err)
     {

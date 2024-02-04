@@ -10,18 +10,16 @@
 #include "bt-periph.h"
 #include "bmp5.h"
 
-/*Set to 1 to print the values from the BMP sensor*/
-#define PRINT_SENSOR_VALUES 0
-
 struct bmp5_sensor_data sensor_data;
 
 /* Declare buffers for payload*/
-/* packet_ts[20] = "1483228799,101068,23" */
-char frame_ts[20] = "";
-/* packet_sensor[9] = "101068,23" */
-char frame_sensor[9] = "";
+char frame_payload[20];
+/* packet_ts[20] = "1483228799,101068\r\n" */
+char frame_ts[20];
+/* packet_sensor[9] = "101068" */
+char frame_sensor[9];
 /*Variables for the frame -- Timestamp*/
-uint64_t timestamp = 0;
+uint32_t timestamp_ms = 0;
 
 
 int main(void)
@@ -32,10 +30,7 @@ int main(void)
     bluetooth_advertiser_init();
 
     int8_t bmp5_rslt;
-    /* Interface reference is given as a parameter
-     * For I2C : BMP5_I2C_INTF
-     * For SPI : BMP5_SPI_INTF
-     */
+
     bmp5_rslt = bmp5_interface_init(&dev, BMP5_I2C_INTF);
     bmp5_error_codes_print_result("bmp5_interface_init", bmp5_rslt);
 
@@ -61,9 +56,13 @@ int main(void)
         bmp5_error_codes_print_result("get_sensor_data", bmp5_rslt);
 
         /* Print the two frames*/
-        printk("frame_sensor[%d]:\t%s\n\r", strlen(frame_sensor), frame_sensor);
-        printk("frame_ts[%d]:\t%s\n\r", strlen(frame_ts), frame_ts);
-        k_msleep(1000);
+        //printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
+        //printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
+
+        sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
+        //printk("%s", frame_payload);
+    
+        k_msleep(100);
     }
     return 0;
 }
@@ -76,13 +75,15 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
     if (int_status & BMP5_INT_ASSERTED_DRDY)
     {
         /* Get Timestamp and add it to the frame. eg:"1483228799"*/
-        timestamp = OS_GET_TIME();
-        sprintf(frame_ts, "%010lu", (long unsigned int)timestamp);
+        timestamp_ms = k_uptime_get();
+        
+        sprintf(frame_ts, "%010lu", (long unsigned int)timestamp_ms);
 
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
+
+        /* Build the frame. eg:"101068"*/
+        sprintf(frame_sensor, "%06lu", (long unsigned int)sensor_data.pressure);
     }
-    /* Build the frame. eg:"101068"*/
-    sprintf(frame_sensor, "%06lu", (long unsigned int)sensor_data.pressure);
 
     return rslt;
 }

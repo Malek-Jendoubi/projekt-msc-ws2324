@@ -1,1 +1,25 @@
+#include <zephyr/types.h>
+/* Bluetooth Stack Include*/
+#include <zephyr/bluetooth/bluetooth.h>
+#include <zephyr/bluetooth/gap.h>
+#include <zephyr/bluetooth/gatt.h>
+#include <zephyr/bluetooth/uuid.h>
+#include <zephyr/bluetooth/addr.h>
+/* For managing Bluetooth LE Connections */
+#include <zephyr/bluetooth/conn.h>
+
+
+/** @brief LBS Service UUID. */
+#define BT_UUID_LBS_VAL BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
+
+/* STEP 11.1 - Assign a UUID to the MYSENSOR characteristic */
+/** @brief LED Characteristic UUID. */
+#define BT_UUID_LBS_MYSENSOR_VAL                                                                   \
+	BT_UUID_128_ENCODE(0x00001526, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
+
+#define BT_UUID_LBS BT_UUID_DECLARE_128(BT_UUID_LBS_VAL)
+/* STEP 11.2 - Convert the array to a generic UUID */
+#define BT_UUID_LBS_MYSENSOR BT_UUID_DECLARE_128(BT_UUID_LBS_MYSENSOR_VAL)
+
+
 void bluetooth_advertiser_init();
