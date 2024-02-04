@@ -624,6 +624,8 @@ int8_t bmp5_nvm_read(uint8_t nvm_addr, uint16_t *nvm_data, struct bmp5_dev *dev)
  */
 int8_t bmp5_nvm_write(uint8_t nvm_addr, const uint16_t *nvm_data, struct bmp5_dev *dev);
 
+void bmp5_error_codes_print_result(const char api_name[], int8_t rslt);
+
 #ifdef __cplusplus
 }
 #endif /* End of CPP guard */

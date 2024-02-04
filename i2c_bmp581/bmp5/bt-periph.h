@@ -1,0 +1,1 @@
+void bluetooth_advertiser_init();

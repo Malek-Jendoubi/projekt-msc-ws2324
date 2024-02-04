@@ -3,9 +3,6 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/logging/log.h>
-/* Ring buffer */
-#include <zephyr/sys/ring_buffer.h>
-#include <zephyr/sys/cbprintf.h>    //for string operations
 
 #include "bmp5.h"
 #include "common.h"

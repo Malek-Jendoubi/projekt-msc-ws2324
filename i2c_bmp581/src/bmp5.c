@@ -40,6 +40,9 @@
 
 /*!             Header files
  ****************************************************************************/
+/* Support for printk*/
+#include <zephyr/kernel.h>
+
 #include "bmp5.h"
 
 /***************************************************************************/
@@ -2117,4 +2120,42 @@ static int8_t get_nvm_status(uint8_t *nvm_status, struct bmp5_dev *dev)
     }
 
     return rslt;
+}
+
+/*!
+ *  @brief Prints the execution status of the APIs.
+ */
+void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
+{
+    if (rslt != BMP5_OK)
+    {
+        printk("%s\r\n", api_name);
+        switch (rslt)
+        {
+        case BMP5_E_NULL_PTR:
+            printk("Error [%d] : Null pointer\r\n", rslt);
+            break;
+        case BMP5_E_COM_FAIL:
+            printk("Error [%d] : Communication failure\r\n", rslt);
+            break;
+        case BMP5_E_DEV_NOT_FOUND:
+            printk("Error [%d] : Device not found\r\n", rslt);
+            break;
+        case BMP5_E_INVALID_CHIP_ID:
+            printk("Error [%d] : Invalid chip id\r\n", rslt);
+            break;
+        case BMP5_E_POWER_UP:
+            printk("Error [%d] : Power up error\r\n", rslt);
+            break;
+        case BMP5_E_POR_SOFTRESET:
+            printk("Error [%d] : Power-on reset/softreset failure\r\n", rslt);
+            break;
+        case BMP5_E_INVALID_POWERMODE:
+            printk("Error [%d] : Invalid powermode\r\n", rslt);
+            break;
+        default:
+            printk("Error [%d] : Unknown error code\r\n", rslt);
+            break;
+        }
+    }
 }
