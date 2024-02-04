@@ -22,11 +22,22 @@
 
 struct bmp5_sensor_data sensor_data;
 
+/*Declare a ring buffer to hold the sensor data before sending them*/
+#define SENSOR_READ 0xAC
+#define MY_RING_BUF_WORDS 1
+RING_BUF_ITEM_DECLARE(sensor_ring_buf, MY_RING_BUF_WORDS);
+
+
+
 /*Prototype for BLE connection callbacks*/
 static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
 void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout);
 void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
+
+/* Ring buffer put helper function*/
+void rb_put(struct ring_buf sensor_ring_buf, uint8_t *my_data);
+
 
 /* Variable that holds callback for MTU negotiation */
 static struct bt_gatt_exchange_params exchange_params;
@@ -197,9 +208,11 @@ struct bt_conn_cb connection_callbacks = {
 
 int main(void)
 {
-    /* Declare packets for payload*/
-    char packet_ts[40] = "";
-    char packet_sensor[20] = "";
+    /* Declare buffers for payload*/
+    /* packet_ts[20] = "1483228799,101068,23" */
+    char frame_ts[20] = "";
+    /* packet_sensor[9] = "101068,23" */
+    char frame_sensor[9] = "";
     /*Variables for the frame -- Timestamp*/
     uint64_t timestamp = 0;
 
@@ -233,28 +246,29 @@ int main(void)
         }
     }
 
+    int rb_counter = 0;
+
     while (1)
     {
+        rb_counter ++;
+        /* Get sensor data from the BMP581*/
         rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
         bmp5_error_codes_print_result("get_sensor_data", rslt);
 
-        // Build the frame. eg:"101068,23"
-        sprintf(packet_sensor, "%lu,%ld", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
+        /* Build the frame. eg:"101068,23"*/
+        sprintf(frame_sensor, "%lu,%ld", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
 
-        // Get Timestamp
+        /* Get Timestamp and add it to the frame. eg:"1483228799,101068,23"*/
         timestamp = OS_GET_TIME();
-        // Build the frame. eg:"1483228799,101068,23"
-        sprintf(packet_ts, "%u,%s\n\r", (uint32_t)timestamp, packet_sensor);
+        sprintf(frame_ts, "%u,%s\n\r", (uint32_t)timestamp, frame_sensor);
 
-#if PRINT_SENSOR_VALUES
-        printk("packet_sensor,length[%d]:   %s\n\r", strlen(packet_sensor), packet_sensor);
-        printk("packet_ts,length[%d]:       %s\n\r", strlen(packet_ts), packet_ts);
+        /* Print the two frames*/
+        printk("frame_sensor[%d]:\t%s\n\r", strlen(frame_sensor), frame_sensor);
+        printk("frame_ts[%d]:\t%s\n\r", strlen(frame_ts), frame_ts);
 
-        adv_mfg_data.pressure_data = (uint16_t)(sensor_data).pressure;
-        bt_le_adv_update_data(ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
-#endif
+        rb_put(sensor_ring_buf, (uint8_t)frame_ts);
 
-        bmp5_delay_us(1000 * 500, &dev);
+        k_msleep(1000);
     }
     return rslt;
 }
@@ -263,25 +277,10 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
 {
     int8_t rslt = 0;
     uint8_t int_status = 0x1;
-    /*
-        long unsigned int sensor_pressure[50];
-        long int sensor_temp[50];
 
-     */
-#if PRINT_SENSOR_VALUES
-    printk("\nOutput:\n");
-    printk("Pressure (Pa), \tTemperature (deg C)\n");
-#endif
     if (int_status & BMP5_INT_ASSERTED_DRDY)
     {
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
-#if PRINT_SENSOR_VALUES
-        if (rslt == BMP5_OK)
-        {
-            printk("%lu, %ld\n\r", (long unsigned int)sensor_data.pressure, (long int)sensor_data.temperature);
-        }
-#endif
-        bmp5_delay_us(10 * 1000, dev);
     }
     return rslt;
 }
@@ -374,38 +373,32 @@ void bmp5_error_codes_print_result(const char api_name[], int8_t rslt)
     if (rslt != BMP5_OK)
     {
         printk("%s\r\n", api_name);
-        if (rslt == BMP5_E_NULL_PTR)
+        switch (rslt)
         {
+        case BMP5_E_NULL_PTR:
             printk("Error [%d] : Null pointer\r\n", rslt);
-        }
-        else if (rslt == BMP5_E_COM_FAIL)
-        {
+            break;
+        case BMP5_E_COM_FAIL:
             printk("Error [%d] : Communication failure\r\n", rslt);
-        }
-        else if (rslt == BMP5_E_DEV_NOT_FOUND)
-        {
+            break;
+        case BMP5_E_DEV_NOT_FOUND:
             printk("Error [%d] : Device not found\r\n", rslt);
-        }
-        else if (rslt == BMP5_E_INVALID_CHIP_ID)
-        {
+            break;
+        case BMP5_E_INVALID_CHIP_ID:
             printk("Error [%d] : Invalid chip id\r\n", rslt);
-        }
-        else if (rslt == BMP5_E_POWER_UP)
-        {
+            break;
+        case BMP5_E_POWER_UP:
             printk("Error [%d] : Power up error\r\n", rslt);
-        }
-        else if (rslt == BMP5_E_POR_SOFTRESET)
-        {
+            break;
+        case BMP5_E_POR_SOFTRESET:
             printk("Error [%d] : Power-on reset/softreset failure\r\n", rslt);
-        }
-        else if (rslt == BMP5_E_INVALID_POWERMODE)
-        {
+            break;
+        case BMP5_E_INVALID_POWERMODE:
             printk("Error [%d] : Invalid powermode\r\n", rslt);
-        }
-        else
-        {
-            /* For more error codes refer "*_defs.h" */
+            break;
+        default:
             printk("Error [%d] : Unknown error code\r\n", rslt);
+            break;
         }
     }
 }
@@ -421,4 +414,16 @@ static void exchange_func(struct bt_conn *conn, uint8_t att_err,
             bt_gatt_get_mtu(conn) - 3; // 3 bytes used for Attribute headers.
         printk("New MTU: %d bytes\r\n", payload_mtu);
     }
+}
+
+void rb_put(struct ring_buf sensor_ring_buf, uint8_t *my_data)
+{
+    uint32_t ret;
+
+    ret = ring_buf_item_put(&sensor_ring_buf, SENSOR_READ, 0, my_data, MY_RING_BUF_WORDS);
+    if (ret != MY_RING_BUF_WORDS)
+    {
+        printk("not enough room, partial copy.");
+    }
+    return ret;
 }
