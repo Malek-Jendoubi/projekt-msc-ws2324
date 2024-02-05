@@ -1,9 +1,12 @@
 #include "bt-periph.h"
+
 /*Prototype for BLE connection callbacks*/
 static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
 void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout);
 void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
+
+static bool notify_mysensor_enabled;
 
 /* Variable that holds callback for MTU negotiation */
 static struct bt_gatt_exchange_params exchange_params;
@@ -15,10 +18,24 @@ static void exchange_func(struct bt_conn *conn, uint8_t att_err,
 /*BLE Connection struct*/
 struct bt_conn *my_conn = NULL;
 
-/* Define the characteristic value storage */
-//static uint8_t sensor_value[20] = "Example 20Byte Str";
+/* ## GATT Server ## */
+/* Define the configuration change callback function for the MYSENSOR characteristic */
+static void mylbsbc_ccc_mysensor_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
+{
+	notify_mysensor_enabled = (value == BT_GATT_CCC_NOTIFY);
+}
 
 /* GATT characteristic and service Declaration */
+/* LED Button Service Declaration */
+BT_GATT_SERVICE_DEFINE(
+	my_lbs_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_LBS),
+	/* Create and add the MYSENSOR characteristic and its CCCD  */
+	BT_GATT_CHARACTERISTIC(BT_UUID_LBS_MYSENSOR, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL,
+			       NULL, NULL),
+	BT_GATT_CCC(mylbsbc_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+);
+
+
 
 /* Create an LE Advertising Parameters variable */
 static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
@@ -215,4 +232,14 @@ void bluetooth_advertiser_init()
         printk("Advertising failed to start (err %d)\n", bt_err);
         return;
     }
+}
+
+/* Define the function to send notifications for the MYSENSOR characteristic */
+int my_lbs_send_sensor_notify(uint32_t* sensor_value)
+{
+	if (!notify_mysensor_enabled) {
+		return -EACCES;
+	}
+
+	return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &sensor_value, sizeof(sensor_value));
 }

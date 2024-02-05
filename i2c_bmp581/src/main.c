@@ -12,6 +12,10 @@
 
 struct bmp5_sensor_data sensor_data;
 
+uint32_t pressure_data = 0;
+
+
+
 /* packet_ts[20] = "1483228799" */
 char frame_ts[20];
 /* packet_sensor[9] = "101068" */
@@ -61,7 +65,11 @@ int main(void)
 
         sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
         //printk("%s", frame_payload);
-    
+
+        pressure_data = atoi(frame_sensor);
+
+        my_lbs_send_sensor_notify(pressure_data);
+        
         k_msleep(100);
     }
     return 0;
