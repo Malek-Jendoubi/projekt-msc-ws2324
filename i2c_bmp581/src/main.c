@@ -12,6 +12,8 @@
 
 #include <string.h>
 
+#define NOTIFICATION_PERIOD_MS 200
+
 struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
 
@@ -62,8 +64,7 @@ int main(void)
         /* Print the two frames*/
         //printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
         //printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
-
-        sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
+        //sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
         //printk("%s", frame_payload);
 
         my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
@@ -71,7 +72,7 @@ int main(void)
         my_lbs_send_sensor_notify((uint32_t)sensor_data.temperature);        
         k_msleep(1);
         my_lbs_send_sensor_notify(timestamp_ms);
-        k_msleep(200);
+        k_msleep(NOTIFICATION_PERIOD_MS);
     }
     return 0;
 }
