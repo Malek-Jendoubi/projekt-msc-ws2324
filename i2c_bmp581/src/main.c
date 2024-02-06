@@ -68,6 +68,8 @@ int main(void)
 
         my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
         k_msleep(1);
+        my_lbs_send_sensor_notify((uint32_t)sensor_data.temperature);        
+        k_msleep(1);
         my_lbs_send_sensor_notify(timestamp_ms);
         k_msleep(200);
     }
@@ -81,15 +83,10 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
 
     if (int_status & BMP5_INT_ASSERTED_DRDY)
     {
-        /* Get Timestamp and add it to the frame. eg:"1483228799"*/
+        /* Get Timestamp "*/
         timestamp_ms = k_uptime_get();
-        
-        //sprintf(frame_ts, "%010lu", (long unsigned int)timestamp_ms);
-
+        /* New value for pressure in sensor_data.pressure and for temerature in sensor_data.temperature */    
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
-
-        /* Build the frame. eg:"101068"*/
-        //sprintf(frame_sensor, "%06lu", (long unsigned int)sensor_data.pressure);
     }
 
     return rslt;

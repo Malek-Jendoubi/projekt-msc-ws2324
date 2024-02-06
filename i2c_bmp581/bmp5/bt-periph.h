@@ -20,4 +20,4 @@
 
 void bluetooth_advertiser_init();
 
-int my_lbs_send_sensor_notify(uint32_t* sensor_value);
+int my_lbs_send_sensor_notify(uint32_t sensor_value);

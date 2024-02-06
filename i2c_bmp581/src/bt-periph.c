@@ -240,7 +240,7 @@ void bluetooth_advertiser_init()
 
 
 /* Define the function to send notifications for the MYSENSOR characteristic */
-int my_lbs_send_sensor_notify(uint32_t* sensor_value)
+int my_lbs_send_sensor_notify(uint32_t sensor_value)
 {
     if (!notify_mysensor_enabled)
     {
