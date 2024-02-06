@@ -107,4 +107,5 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-./Python-BLE-Central/pressure_logs/
+*.csv
+*.csv_temp

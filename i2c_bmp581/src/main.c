@@ -61,17 +61,17 @@ int main(void)
         bmp5_rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
         bmp5_error_codes_print_result("get_sensor_data", bmp5_rslt);
 
-        /* Print the two frames*/
-        //printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
-        //printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
-        //sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
-        //printk("%s", frame_payload);
+        /* Print the two frames
+        printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
+        printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
+        sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
+        printk("%s", frame_payload);
+        */
 
-        my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
-        k_msleep(1);
-        my_lbs_send_sensor_notify((uint32_t)sensor_data.temperature);        
-        k_msleep(1);
+        /* TODO: Add temperature notification on connect. using additional handle?*/
         my_lbs_send_sensor_notify(timestamp_ms);
+        k_msleep(1);
+        my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
         k_msleep(NOTIFICATION_PERIOD_MS);
     }
     return 0;
