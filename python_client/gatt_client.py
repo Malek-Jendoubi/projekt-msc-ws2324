@@ -3,6 +3,8 @@ TODO:   ** Error handling for all the steps in the connection process
         ** Input parameter for the filepath
         ** Input parameter for the log duration
         ** Exit value for further processing by the next chain
+        ** Logs in different folders for each day.
+
 """
 import asyncio
 from datetime import datetime
@@ -12,10 +14,11 @@ import matplotlib.pyplot as plt
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
 
+LOG_DURATION = 10  # Logging time in seconds
+
 DEVICE_NAME = "BMP581"
 CHAR_PRES_UUID = "00001526-1212-efde-1523-785feabcd123"
 
-LOG_DURATION = 10  # Logging time in seconds
 NOW = datetime.now().strftime("%Y-%m-%d_%H_%M") # Timestamp for the file name
 #Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
 TAG = "CALIBRATE"   
@@ -31,11 +34,12 @@ def plot_values():
     Y_Data = df['pressure_values']
 
     # Plot the Data
+    # TODO: Make a better plot
     plt.plot(X_Data, Y_Data, 'r-', lw=1)
     plt.show()
 
     # Save the plot as PNG
-    FILENAME_PNG = FILENAME[:-2] + '.png'
+    FILENAME_PNG = FILENAME[:-4] + '.png'
     plt.savefig(FILENAME_PNG)
 
     print(f"Figure saved to: {FILENAME_PNG}")
