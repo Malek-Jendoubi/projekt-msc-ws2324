@@ -1,0 +1,15 @@
+{
+    "esbonio.sphinx.confDir": "",
+    "nrf-connect.applications": [
+        "${workspaceFolder}\\i2c_bmp581"
+    ],
+    "nrf-connect.debugging.bindings": {
+        "${workspaceFolder}/i2c_bmp581/build": "Launch build"
+    },
+    "files.associations": {
+        "bmp5.h": "c",
+        "i2c.h": "c",
+        "common.h": "c",
+        "bt-periph.h": "c"
+    }
+}
