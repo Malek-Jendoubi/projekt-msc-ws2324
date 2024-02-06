@@ -109,3 +109,4 @@ dkms.conf
 
 *.csv
 *.csv_temp
+*.png
