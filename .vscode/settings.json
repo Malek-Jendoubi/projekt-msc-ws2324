@@ -1,7 +1,8 @@
 {
     "esbonio.sphinx.confDir": "",
     "nrf-connect.applications": [
-        "${workspaceFolder}\\i2c_bmp581"
+        "${workspaceFolder}\\i2c_bmp581",
+        "${workspaceFolder}\\nrf_52_server"
     ],
     "nrf-connect.debugging.bindings": {
         "${workspaceFolder}/i2c_bmp581/build": "Launch build"

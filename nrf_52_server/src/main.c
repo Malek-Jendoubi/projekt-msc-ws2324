@@ -6,7 +6,6 @@
 
 /*INCLUDES*/
 #include "main.h"
-#include "timestamp.h"
 #include "bt-periph.h"
 #include "bmp5.h"
 
