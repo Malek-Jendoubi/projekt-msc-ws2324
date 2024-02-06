@@ -8,6 +8,10 @@ void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
 
 static bool notify_mysensor_enabled;
 
+#define DEVICE_NAME "BMP581"
+#define DEVICE_NAME_LEN 6
+
+
 /* Variable that holds callback for MTU negotiation */
 static struct bt_gatt_exchange_params exchange_params;
 
@@ -22,20 +26,18 @@ struct bt_conn *my_conn = NULL;
 /* Define the configuration change callback function for the MYSENSOR characteristic */
 static void mylbsbc_ccc_mysensor_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
 {
-	notify_mysensor_enabled = (value == BT_GATT_CCC_NOTIFY);
+    notify_mysensor_enabled = (value == BT_GATT_CCC_NOTIFY);
 }
 
 /* GATT characteristic and service Declaration */
 /* LED Button Service Declaration */
 BT_GATT_SERVICE_DEFINE(
-	my_lbs_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_LBS),
-	/* Create and add the MYSENSOR characteristic and its CCCD  */
-	BT_GATT_CHARACTERISTIC(BT_UUID_LBS_MYSENSOR, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL,
-			       NULL, NULL),
-	BT_GATT_CCC(mylbsbc_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+    my_lbs_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_LBS),
+    /* Create and add the MYSENSOR characteristic and its CCCD  */
+    BT_GATT_CHARACTERISTIC(BT_UUID_LBS_MYSENSOR, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL,
+                           NULL, NULL),
+    BT_GATT_CCC(mylbsbc_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE), 
 );
-
-
 
 /* Create an LE Advertising Parameters variable */
 static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
@@ -48,18 +50,22 @@ static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
 static volatile uint8_t mfg_data[] = {0x00, 0x00, 0xaa, 0xbb};
 
 static const struct bt_data ad[] = {
-    BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
-    BT_DATA(BT_DATA_MANUFACTURER_DATA, mfg_data, 4),
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL,
-                  0xf0, 0xde, 0xbc, 0x9a, 0x78, 0x56, 0x34, 0x12,
-                  0x78, 0x56, 0x34, 0x12, 0x78, 0x56, 0x34, 0x12),
+    BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_NO_BREDR),
+    BT_DATA_BYTES(BT_DATA_UUID16_ALL, 0xaa, 0xfe),
+    BT_DATA_BYTES(BT_DATA_SVC_DATA16,
+                  0xaa, 0xfe, /* Eddystone UUID: See Eddystone protocol Specs */
+                  /*https://github.com/google/eddystone/blob/master/protocol-specification.md*/
+                  0x10, /* Eddystone-URL frame type */
+                  0x00, /* Calibrated Tx power at 0m */
+                  0x00, /* URL Scheme Prefix http://www. */
+                  'z', 'e', 'p', 'h', 'y', 'r',
+                  'p', 'r', 'o', 'j', 'e', 'c', 't',
+                  0x08) /* .org */
 };
 
-/* Declare the scan response packet */
+/* Declare the scan response packet - Set Scan Response data */
 static const struct bt_data sd[] = {
-    BT_DATA_BYTES(BT_DATA_UUID128_ALL,
-                  BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde,
-                                     0x1523, 0x785feabcd123)),
+    BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
 };
 
 /* Function to update the connection's PHY */
@@ -125,7 +131,7 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     {
         printk("bt_conn_get_info() returned %d\n\r", err);
         return;
-    }
+    }    
 
     /* Add the connection parameters to your log */
     double connection_interval = info.le.interval * 1.25; // in ms
@@ -197,7 +203,6 @@ struct bt_conn_cb connection_callbacks = {
     .le_data_len_updated = on_le_data_len_updated,
 };
 
-
 /* Implement callback function for MTU exchange */
 static void exchange_func(struct bt_conn *conn, uint8_t att_err,
                           struct bt_gatt_exchange_params *params)
@@ -217,7 +222,6 @@ void bluetooth_advertiser_init()
 
     bt_conn_cb_register(&connection_callbacks);
 
-    
     bt_err = bt_enable(NULL);
     if (bt_err)
     {
@@ -234,12 +238,14 @@ void bluetooth_advertiser_init()
     }
 }
 
+
 /* Define the function to send notifications for the MYSENSOR characteristic */
 int my_lbs_send_sensor_notify(uint32_t* sensor_value)
 {
-	if (!notify_mysensor_enabled) {
-		return -EACCES;
-	}
+    if (!notify_mysensor_enabled)
+    {
+        return -EACCES;
+    }
 
-	return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &sensor_value, sizeof(sensor_value));
+    return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &sensor_value, sizeof(sensor_value));
 }

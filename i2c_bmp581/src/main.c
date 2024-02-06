@@ -10,10 +10,10 @@
 #include "bt-periph.h"
 #include "bmp5.h"
 
+#include <string.h>
+
 struct bmp5_sensor_data sensor_data;
-
 uint32_t pressure_data = 0;
-
 
 
 /* packet_ts[20] = "1483228799" */
@@ -66,10 +66,9 @@ int main(void)
         sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
         //printk("%s", frame_payload);
 
-        pressure_data = atoi(frame_sensor);
-
-        my_lbs_send_sensor_notify(pressure_data);
-        
+        my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
+        k_msleep(1);
+        my_lbs_send_sensor_notify(timestamp_ms);
         k_msleep(100);
     }
     return 0;
@@ -85,12 +84,12 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
         /* Get Timestamp and add it to the frame. eg:"1483228799"*/
         timestamp_ms = k_uptime_get();
         
-        sprintf(frame_ts, "%010lu", (long unsigned int)timestamp_ms);
+        //sprintf(frame_ts, "%010lu", (long unsigned int)timestamp_ms);
 
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
 
         /* Build the frame. eg:"101068"*/
-        sprintf(frame_sensor, "%06lu", (long unsigned int)sensor_data.pressure);
+        //sprintf(frame_sensor, "%06lu", (long unsigned int)sensor_data.pressure);
     }
 
     return rslt;
