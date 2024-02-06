@@ -16,10 +16,11 @@ DEVICE_NAME = "BMP581"
 CHAR_PRES_UUID = "00001526-1212-efde-1523-785feabcd123"
 
 LOG_DURATION = 10  # Logging time in seconds
-NOW = datetime.now().strftime("%Y-%m-%d_%H_%M_%S")
-TAG = "_CALIBRATE"
-FILENAME = f"./pressure_logs/pressure_log{TAG}_{NOW}.csv"
-FILE_PREPROCESSED = "pressure_log_prepr.csv"
+NOW = datetime.now().strftime("%Y-%m-%d_%H_%M_%S") # Timestamp for the file name
+#Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
+TAG = "CALIBRATE"   
+FILENAME = f"./pressure_logs/LOG_{TAG}_{NOW}.csv"
+FILE_PREPROCESSED = "./pressure_logs/pressure_log_prepr.csv"  #.csv for gitignore sake
 
 
 def plot_values():
@@ -37,6 +38,7 @@ def plot_values():
     FILENAME_PNG = FILENAME[:-2] + '.png'
     plt.savefig(FILENAME_PNG)
 
+
 def write_to_file(str_value=None, file=FILENAME, permission="a"):
     file = open(file, permission)
     file.writelines(str_value)
@@ -44,17 +46,10 @@ def write_to_file(str_value=None, file=FILENAME, permission="a"):
     file.close()
 
 
-async def notification_handler(characteristic: BleakGATTCharacteristic, data: bytearray):
-    """Simple notification handler which prints the data received."""
-    sensor_value: int = int.from_bytes(data, byteorder='little', signed=False)
-
-    write_to_file(str(sensor_value), FILE_PREPROCESSED, "a")
-    return
-
-
 def correct_csv():
     # Open the source file in read mode and the destination file in write mode
-    with open(FILE_PREPROCESSED, "r") as source_file, open(f"{FILENAME}_temp", "w") as destination_file:
+    with open(FILE_PREPROCESSED, "r") as source_file, open(FILENAME, "w") as destination_file:
+        destination_file.writelines("timestamp pressure_values\n")
         # Iterate over each line in the source file, enumerate to keep track of the line number
         for line_number, line in enumerate(source_file, 1):  # Starting index at 1 for easier modulo operation
             if line_number % 2 == 0:  # Check if it's skip line (line numbers 2, 4, 5, etc.)
@@ -64,14 +59,15 @@ def correct_csv():
                 destination_file.write(line.strip())  # Write the current line to the destination file
                 destination_file.write(" ")  # Write the current line to the destination file
     # Open the source file in read mode and the destination file in write mode
+        print(f"LOG saved to file: {FILENAME}")
 
-    with open(f"{FILENAME}_temp", "r") as source_file, open(FILENAME, "w") as destination_file:
-        destination_file.writelines("timestamp pressure_values\n")
-        # Read the content of the source file
-        content = source_file.read()
-        # Write the content to the destination file
-        destination_file.write(content)
-        print(f"Corrected csv file.")
+
+async def notification_handler(characteristic: BleakGATTCharacteristic, data: bytearray):
+    """Simple notification handler which prints the data received."""
+    sensor_value: int = int.from_bytes(data, byteorder='little', signed=False)
+
+    write_to_file(str(sensor_value), FILE_PREPROCESSED, "a")
+    return
 
 
 async def main():
@@ -94,9 +90,8 @@ async def main():
         await client.stop_notify(CHAR_PRES_UUID)
 
     correct_csv()
-    print(f"LOG saved to file: {FILENAME}")
 
-    print(f"Plotting values of {FILENAME} ...")
+    print(f"Plotting values from {FILENAME} ...")
     plot_values()
 
 
