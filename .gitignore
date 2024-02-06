@@ -52,8 +52,8 @@ Mkfile.old
 dkms.conf
 
 # Build dirs
-i2c_bmp581/pristine/*
-i2c_bmp581/build/*
+nrf_52_server/pristine/*
+nrf_52_server/build/*
 # Prerequisites
 *.d
 
