@@ -16,15 +16,15 @@ DEVICE_NAME = "BMP581"
 CHAR_PRES_UUID = "00001526-1212-efde-1523-785feabcd123"
 
 LOG_DURATION = 10  # Logging time in seconds
-NOW = datetime.now().strftime("%Y-%m-%d_%H_%M_%S") # Timestamp for the file name
+NOW = datetime.now().strftime("%Y-%m-%d_%H_%M") # Timestamp for the file name
 #Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
 TAG = "CALIBRATE"   
 FILENAME = f"./pressure_logs/LOG_{TAG}_{NOW}.csv"
-FILE_PREPROCESSED = "./pressure_logs/pressure_log_prepr.csv"  #.csv for gitignore sake
+FILE_RAW = "./pressure_logs/RAW_LOG.csv"  #.csv for gitignore sake
 
 
 def plot_values():
-    df = pd.read_csv(FILENAME, sep=" ")
+    df = pd.read_csv(FILENAME, sep=",")
     df.head()
 
     X_Data = df['timestamp']
@@ -38,6 +38,22 @@ def plot_values():
     FILENAME_PNG = FILENAME[:-2] + '.png'
     plt.savefig(FILENAME_PNG)
 
+    print(f"Figure saved to: {FILENAME_PNG}")
+
+
+def correct_csv(): #Build a csv from the file of raw data 
+    # Open the source file in read mode and the destination file in write mode
+    with open(FILE_RAW, "r") as source_file, open(FILENAME, "w") as destination_file:
+        destination_file.writelines("timestamp,pressure_values\n")
+        # Iterate over each line in the source file, enumerate to keep track of the line number
+        for line_number, line in enumerate(source_file, 1):  # Starting index at 1 for easier modulo operation
+            if line_number % 2 == 0:  # If even line, newline
+                destination_file.write(line.strip())
+                destination_file.write("\n")
+            else:  # If odd line, space
+                destination_file.write(line.strip())
+                destination_file.write(",")
+        print(f"LOG .csv saved to: {FILENAME}")
 
 def write_to_file(str_value=None, file=FILENAME, permission="a"):
     file = open(file, permission)
@@ -46,32 +62,16 @@ def write_to_file(str_value=None, file=FILENAME, permission="a"):
     file.close()
 
 
-def correct_csv():
-    # Open the source file in read mode and the destination file in write mode
-    with open(FILE_PREPROCESSED, "r") as source_file, open(FILENAME, "w") as destination_file:
-        destination_file.writelines("timestamp pressure_values\n")
-        # Iterate over each line in the source file, enumerate to keep track of the line number
-        for line_number, line in enumerate(source_file, 1):  # Starting index at 1 for easier modulo operation
-            if line_number % 2 == 0:  # Check if it's skip line (line numbers 2, 4, 5, etc.)
-                destination_file.write(line.strip())  # Write the current line to the destination file
-                destination_file.write("\n")  # Write the current line to the destination file
-            else:
-                destination_file.write(line.strip())  # Write the current line to the destination file
-                destination_file.write(" ")  # Write the current line to the destination file
-    # Open the source file in read mode and the destination file in write mode
-        print(f"LOG saved to file: {FILENAME}")
-
-
 async def notification_handler(characteristic: BleakGATTCharacteristic, data: bytearray):
     """Simple notification handler which prints the data received."""
     sensor_value: int = int.from_bytes(data, byteorder='little', signed=False)
 
-    write_to_file(str(sensor_value), FILE_PREPROCESSED, "a")
+    write_to_file(str(sensor_value), FILE_RAW, "a")
     return
 
 
 async def main():
-    open(FILE_PREPROCESSED, "w")
+    open(FILE_RAW, "w")
     print("Looking for BMP581...")
     device = await BleakScanner.find_device_by_name(DEVICE_NAME)
 
