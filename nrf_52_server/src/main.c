@@ -10,16 +10,29 @@
 #include "bmp5.h"
 
 #include <string.h>
-
-#define NOTIFICATION_PERIOD_MS 1
+#include <zephyr/kernel.h>
 
 struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
-
+static char frame_ts[20] = "0000000000\n";
+static char frame_sensor[20] = "000000\n";
+static char frame_payload[20] = "0000000000,000000\n";
 
 /*Variables for the frame -- Timestamp*/
 uint32_t timestamp_ms = 0;
 
+void new_packet()
+{
+    sprintf(frame_sensor, "%06lu\n", (unsigned long)sensor_data.pressure);
+    sprintf(frame_ts, "%010lu\n", (unsigned long)timestamp_ms);
+    // Print the two frames
+    printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
+    printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
+
+    sprintf(frame_payload, "%s,%s\n", frame_ts, frame_sensor);
+    printk("%s", frame_payload);
+
+}
 
 int main(void)
 {
@@ -31,46 +44,43 @@ int main(void)
     int8_t bmp5_rslt;
 
     bmp5_rslt = bmp5_interface_init(&dev, BMP5_I2C_INTF);
-    bmp5_error_codes_print_result("bmp5_interface_init", bmp5_rslt);
 
     if (bmp5_rslt == BMP5_OK)
     {
-
         bmp5_soft_reset(&dev);
 
         bmp5_rslt = bmp5_init(&dev);
-        bmp5_error_codes_print_result("bmp5_init", bmp5_rslt);
 
         if (bmp5_rslt == BMP5_OK)
         {
             bmp5_rslt = set_config(&osr_odr_press_cfg, &dev);
-            bmp5_error_codes_print_result("set_config", bmp5_rslt);
         }
     }
+
+    /* Initial sensor values*/
+    get_sensor_data(&osr_odr_press_cfg, &dev);
+    float old_sensor_data = sensor_data.pressure;
+    bool refrech;
 
     while (1)
     {
         /* Get sensor data from the BMP581*/
         bmp5_rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
-        bmp5_error_codes_print_result("get_sensor_data", bmp5_rslt);
+        
+        refrech = old_sensor_data == sensor_data.pressure;
 
-        /* Print the two frames
-        printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
-        printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
-        sprintf(frame_payload,"%s,%s\n\r", frame_ts, frame_sensor);
-        printk("%s", frame_payload);
-        */
-
-        /* TODO: Add temperature notification on connect. using additional handle?*/
-        my_lbs_send_sensor_notify(timestamp_ms);
-        k_usleep(NOTIFICATION_PERIOD_MS);
-        my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
-        k_usleep(NOTIFICATION_PERIOD_MS);
+        if (!refrech)
+        {
+            /* Make a new char array packet*/
+            new_packet();
+            /* Send the packet to the characteristic*/
+            notify_handler();
+        }      
     }
     return 0;
 }
 
-static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
+int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
 {
     int8_t rslt = 0;
     uint8_t int_status = 0x1;
@@ -78,15 +88,15 @@ static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_pr
     if (int_status & BMP5_INT_ASSERTED_DRDY)
     {
         /* Get Timestamp "*/
-        timestamp_ms = k_uptime_get();
-        /* New value for pressure in sensor_data.pressure and for temerature in sensor_data.temperature */    
+        timestamp_ms = k_uptime_get_32();
+        /* New value for pressure in sensor_data.pressure and for temerature in sensor_data.temperature */
         rslt = bmp5_get_sensor_data(&sensor_data, osr_odr_press_cfg, dev);
     }
 
     return rslt;
 }
 
-static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
+int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev)
 {
     int8_t rslt;
     struct bmp5_iir_config set_iir_cfg;

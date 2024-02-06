@@ -7,6 +7,8 @@
 #include "bmp5.h"
 #include "common.h"
 
+static char frame_payload[20];
+
 void bluetooth_advertiser_init();
 
 /*!
@@ -17,7 +19,7 @@ void bluetooth_advertiser_init();
  *
  *  @return Status of execution.
  */
-static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
+int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
 
 /*!
  *  @brief This internal API is used to get sensor data.
@@ -27,7 +29,7 @@ static int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, st
  *
  *  @return Status of execution.
  */
-static int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
+int8_t get_sensor_data(const struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
 
 /*!
  *  @brief Prints the execution status of the APIs.

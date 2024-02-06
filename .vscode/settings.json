@@ -11,6 +11,8 @@
         "bmp5.h": "c",
         "i2c.h": "c",
         "common.h": "c",
-        "bt-periph.h": "c"
+        "bt-periph.h": "c",
+        "main.h": "c",
+        "kernel.h": "c"
     }
 }

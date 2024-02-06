@@ -8,6 +8,8 @@
 /* For managing Bluetooth LE Connections */
 #include <zephyr/bluetooth/conn.h>
 
+#include "main.h"
+
 /* LBS Service UUID. */
 #define BT_UUID_LBS_VAL \
 	BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
@@ -20,4 +22,5 @@
 
 void bluetooth_advertiser_init();
 
-int my_lbs_send_sensor_notify(uint32_t sensor_value);
+int notify_handler();
+

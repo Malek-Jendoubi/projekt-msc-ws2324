@@ -21,7 +21,6 @@ The proposed solution is two parts:
   * It outputs the values and their timestamps via a BLE GATT server.
 * A Python client on a Windows PC:
   * Establishes a connection to the GATT Server on the nRF and receives the air pressure and timestamp values.
-  * Formats the values into a csv
   * Plots the values of pressure as a function of time
 
 ## Get started with the project

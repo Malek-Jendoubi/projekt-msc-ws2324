@@ -238,14 +238,11 @@ void bluetooth_advertiser_init()
     }
 }
 
-
-/* Define the function to send notifications for the MYSENSOR characteristic */
-int my_lbs_send_sensor_notify(uint32_t sensor_value)
-{
-    if (!notify_mysensor_enabled)
-    {
-        return -EACCES;
-    }
-
-    return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &sensor_value, sizeof(sensor_value));
+/* Timer handler definition*/
+int notify_handler() {
+    /* need to store the values of timestamp,pressure */
+    
+    /* Notify connected devices of the updated value */
+    return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &frame_payload, sizeof(frame_payload));
 }
+
