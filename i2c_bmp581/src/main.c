@@ -69,7 +69,7 @@ int main(void)
         my_lbs_send_sensor_notify((uint32_t)sensor_data.pressure);
         k_msleep(1);
         my_lbs_send_sensor_notify(timestamp_ms);
-        k_msleep(100);
+        k_msleep(200);
     }
     return 0;
 }
