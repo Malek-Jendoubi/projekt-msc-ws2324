@@ -12,7 +12,7 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 
-#define SAMPLING_INTERVAL_MS 25
+#define SAMPLING_INTERVAL_MS 12
 
 struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
@@ -30,7 +30,6 @@ void new_packet()
     sprintf(frame_ts, "%08lu", (unsigned long)timestamp_ms);
 
     sprintf(frame_payload, "%s,%s\n", frame_ts, frame_sensor);
-    printk("frame_payload[%d]:%s\n", strlen(frame_payload), frame_payload);
 }
 
 int main(void)
