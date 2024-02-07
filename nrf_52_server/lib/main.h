@@ -7,7 +7,7 @@
 #include "bmp5.h"
 #include "common.h"
 
-static char frame_payload[30];
+#define SIZE_PAYLOAD 20
 
 void bluetooth_advertiser_init();
 

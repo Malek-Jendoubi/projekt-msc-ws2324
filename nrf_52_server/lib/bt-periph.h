@@ -10,6 +10,8 @@
 
 #include "main.h"
 
+static uint8_t frame_payload[20];
+
 /* LBS Service UUID. */
 #define BT_UUID_LBS_VAL \
 	BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
@@ -22,5 +24,5 @@
 
 void bluetooth_advertiser_init();
 
-int notify_handler();
+void sensor_notify(char* buf);
 

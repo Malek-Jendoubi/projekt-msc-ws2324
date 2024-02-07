@@ -11,7 +11,6 @@ static bool notify_mysensor_enabled;
 #define DEVICE_NAME "BMP581"
 #define DEVICE_NAME_LEN 6
 
-
 /* Variable that holds callback for MTU negotiation */
 static struct bt_gatt_exchange_params exchange_params;
 
@@ -29,15 +28,29 @@ static void mylbsbc_ccc_mysensor_cfg_changed(const struct bt_gatt_attr *attr, ui
     notify_mysensor_enabled = (value == BT_GATT_CCC_NOTIFY);
 }
 
+
 /* GATT characteristic and service Declaration */
+/* Notification handler*/
+static ssize_t read_char(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset)
+{
+    /* TODO: Crtitical section. on static variable*/
+    const char *value = attr->user_data;
+
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, value, strlen(value));
+}
 /* LED Button Service Declaration */
 BT_GATT_SERVICE_DEFINE(
-    my_lbs_svc, BT_GATT_PRIMARY_SERVICE(BT_UUID_LBS),
+    my_lbs_svc, 
+    BT_GATT_PRIMARY_SERVICE(BT_UUID_LBS),
     /* Create and add the MYSENSOR characteristic and its CCCD  */
-    BT_GATT_CHARACTERISTIC(BT_UUID_LBS_MYSENSOR, BT_GATT_CHRC_NOTIFY, BT_GATT_PERM_NONE, NULL,
-                           NULL, NULL),
-    BT_GATT_CCC(mylbsbc_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE), 
-);
+    /* Characteristic Declaration */
+    BT_GATT_CHARACTERISTIC( BT_UUID_LBS_MYSENSOR,
+                            BT_GATT_CHRC_NOTIFY,
+                            BT_GATT_PERM_READ,
+                            read_char,
+                            NULL, frame_payload),
+    BT_GATT_CCC(mylbsbc_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+    );
 
 /* Create an LE Advertising Parameters variable */
 static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
@@ -131,7 +144,7 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     {
         printk("bt_conn_get_info() returned %d\n\r", err);
         return;
-    }    
+    }
 
     /* Add the connection parameters to your log */
     double connection_interval = info.le.interval * 1.25; // in ms
@@ -145,9 +158,6 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     /* Update the data length and MTU */
     update_data_length(my_conn);
     update_mtu(my_conn);
-
-    k_msleep(1);
-
 
     /* TODO: Turn the connection status LED on */
 }
@@ -241,12 +251,7 @@ void bluetooth_advertiser_init()
     }
 }
 
-/* Timer handler definition*/
-int notify_handler() {
-    /* no need to store the values of timestamp,pressure */
-    /* it is updated in the main() */
-    
-    /* Notify connected devices of the updated value */
-    return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &frame_payload, sizeof(frame_payload));
+void sensor_notify(char* buf)
+{	
+	bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], buf, sizeof(uint8_t)*SIZE_PAYLOAD);
 }
-
