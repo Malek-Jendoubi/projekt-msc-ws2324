@@ -50,13 +50,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-<<<<<<< HEAD
-=======
 
-# Build dirs
-nrf_52_server/pristine/*
-nrf_52_server/build/*
-python_client/pressure_logs/
 # Prerequisites
 *.d
 
@@ -110,6 +104,15 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-#*.csv
-#*.png
->>>>>>> r1remote/main
+*.csv
+*.png
+
+# Build dirs
+nrf_52_server/pristine/*
+nrf_52_server/build/*
+python_client/pressure_logs/
+
+# IDE Specific dirs
+python_client/.idea/
+
+projektmsc-jendoubi-wise2223.code-workspace
