@@ -16,9 +16,9 @@
 
 struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
-static char frame_ts[10] = "00000000\n";
-static char frame_sensor[8] = "000000\n";
-static uint8_t frame_payload[SIZE_PAYLOAD] = "0000000000,000000\n";
+char frame_ts[10];
+char frame_sensor[8];
+char frame_payload[SIZE_PAYLOAD];
 
 /*Variables for the frame -- Timestamp*/
 uint32_t timestamp_ms = 0;
@@ -37,7 +37,6 @@ int main(void)
     struct bmp5_dev dev;
     struct bmp5_osr_odr_press_config osr_odr_press_cfg = {0};
 
-    bluetooth_advertiser_init();
 
     int8_t bmp5_rslt;
 
@@ -58,24 +57,18 @@ int main(void)
     /* Initial sensor values*/
     get_sensor_data(&osr_odr_press_cfg, &dev);
 
-    /* Write only new sensor values*/
-    float old_sensor_data = sensor_data.pressure;
-    bool dupllicate = false;
-
+    /* Start BLE stack and setup/run GATT Server*/
+    bluetooth_advertiser_init();
     while (1)
     {
         /* Get sensor data from the BMP581*/
         bmp5_rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
 
-dupllicate = (old_sensor_data == sensor_data.pressure);
+        /* Make a new char array packet*/
+        new_packet();
+        /* Send the packet to the characteristic*/
+        sensor_notify(frame_payload);
 
-        if (!dupllicate)
-        {
-            /* Make a new char array packet*/
-            new_packet();
-            /* Send the packet to the characteristic*/
-            sensor_notify(frame_payload);
-        }
         k_msleep(SAMPLING_INTERVAL_MS);
     }
     return 0;

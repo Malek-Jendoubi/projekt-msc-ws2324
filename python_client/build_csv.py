@@ -15,6 +15,7 @@ def build_csv():  # Build a csv from the file of raw data
 
         lines = source_file.readlines()
 
+        # Write 1 line, skip 2 (garbage values in )
         index = 0
         while index < len(lines):
             destination_file.write(lines[index])
