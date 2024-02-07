@@ -12,26 +12,28 @@
 #include <string.h>
 #include <zephyr/kernel.h>
 
+#define SAMPLING_INTERVAL_MS 50
+
 struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
-static char frame_ts[20] = "0000000000\n";
-static char frame_sensor[20] = "000000\n";
-static char frame_payload[20] = "0000000000,000000\n";
+static char frame_ts[10] = "00000000\n";
+static char frame_sensor[8] = "000000\n";
+static char frame_payload[30] = "0000000000,000000\n";
 
 /*Variables for the frame -- Timestamp*/
 uint32_t timestamp_ms = 0;
 
+/* Build packet to send out by associating a sensor value to its pressure sensor reading*/
 void new_packet()
 {
-    sprintf(frame_sensor, "%06lu\n", (unsigned long)sensor_data.pressure);
-    sprintf(frame_ts, "%010lu\n", (unsigned long)timestamp_ms);
+    sprintf(frame_sensor, "%06lu", (unsigned long)sensor_data.pressure);
+    sprintf(frame_ts, "%08lu", (unsigned long)timestamp_ms);
     // Print the two frames
-    printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
-    printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
+    // printk("frame_sensor[%d]:%s\n\r", strlen(frame_sensor), frame_sensor);
+    // printk("frame_ts[%d]:%s\n\r", strlen(frame_ts), frame_ts);
 
     sprintf(frame_payload, "%s,%s\n", frame_ts, frame_sensor);
-    printk("%s", frame_payload);
-
+    printk("frame_payload[%d]:%s\n", strlen(frame_payload), frame_payload);
 }
 
 int main(void)
@@ -59,23 +61,28 @@ int main(void)
 
     /* Initial sensor values*/
     get_sensor_data(&osr_odr_press_cfg, &dev);
+
+    /* Write only new sensor values*/
+    /* TODO: write sensor values to flash mem and read/flush values at notification*/
     float old_sensor_data = sensor_data.pressure;
-    bool refrech;
+    bool dupllicate = false;
 
     while (1)
     {
         /* Get sensor data from the BMP581*/
         bmp5_rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
-        
-        refrech = old_sensor_data == sensor_data.pressure;
 
-        if (!refrech)
+        dupllicate = old_sensor_data == sensor_data.pressure;
+
+        if (!dupllicate)
         {
             /* Make a new char array packet*/
             new_packet();
             /* Send the packet to the characteristic*/
             notify_handler();
-        }      
+        }
+
+        k_msleep(SAMPLING_INTERVAL_MS);
     }
     return 0;
 }

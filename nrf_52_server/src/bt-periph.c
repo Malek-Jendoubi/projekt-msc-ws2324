@@ -146,6 +146,9 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     update_data_length(my_conn);
     update_mtu(my_conn);
 
+    k_msleep(1);
+
+
     /* TODO: Turn the connection status LED on */
 }
 
@@ -240,7 +243,8 @@ void bluetooth_advertiser_init()
 
 /* Timer handler definition*/
 int notify_handler() {
-    /* need to store the values of timestamp,pressure */
+    /* no need to store the values of timestamp,pressure */
+    /* it is updated in the main() */
     
     /* Notify connected devices of the updated value */
     return bt_gatt_notify(NULL, &my_lbs_svc.attrs[2], &frame_payload, sizeof(frame_payload));
