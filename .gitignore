@@ -112,7 +112,8 @@ nrf_52_server/pristine/*
 nrf_52_server/build/*
 python_client/pressure_logs/
 
-# IDE Specific dirs
-python_client/.idea/
+# All hidden dirs and files except gitignore
+.*
+!/.gitignore
 
 projektmsc-jendoubi-wise2223.code-workspace
