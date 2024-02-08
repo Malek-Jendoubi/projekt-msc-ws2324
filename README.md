@@ -14,7 +14,7 @@ In the proposed topic, a given microcontroller board should be programmed to _re
 * Familiarization with the air pressure sensor, the microcontroller board, and its development tools. **_DONE_**
 * Implementation of the sensors driver and the reading of sensor data via I2C. **_DONE_**
 * Implementation of a Bluetooth Low Energy transmission of the sensor data. **_DONE_**
-* Recording of air pressure signals for different walking scenarios when the sensor is attached to the shoe or wrist. **_IN WORK_**
+* Recording of air pressure signals for different walking scenarios when the sensor is attached to the shoe or wrist. **_IN PROGRESS_**
 * Discussion of the acquired sensor signals regarding its usefulness for activity recognition.
 * Documentation of the acquired results.
 
