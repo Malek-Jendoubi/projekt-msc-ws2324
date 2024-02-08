@@ -44,9 +44,9 @@ The nrf52832 is programmed with the nrf Connect SDK, preferably in Visual Studio
 
 ### For the client side: Recording Device
 
-* A PC with a BLE interface
-* Python
-* Python libs: TODO
+* A PC with a BLE Interface.
+* Python v3.
+* Python libs.
 
 ## Get started with the project
 
