@@ -31,9 +31,22 @@ The proposed solution is two parts:
  
 ## Requirements
 
-### For the server side: Microcontroller
+### For the server side: nRF52
+
+#### Hardware
+The microcontroller is an nrf52832 on an nrf52 bluefruit feather board.
+
+The air pressure sensors are BMP580/581 from Bosch Sensortec on shuttle boards that can be queried via SPI (possibly also I2C).
+
+#### Software
+
+The nrf52832 is programmed with the nrf Connect SDK, preferably in Visual Studio Code. There are very detailed tutorials on the nrf Connect SDK on the Internet, which you are welcome to take a look at.
 
 ### For the client side: Recording Device
+
+* A PC with a BLE interface
+* Python
+* Python libs: TODO
 
 ## Get started with the project
 
