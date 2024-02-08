@@ -7,17 +7,16 @@ In recent technological advancements, air pressure sensors have emerged as a pro
 
 Additionally, the availability of new sensor technology with enhanced accuracy opens avenues for more precise and reliable human activity recognition. Notably, the use of air pressure sensors represents a relatively unexplored territory in research, providing an opportunity for the student to contribute to the growing field of sensor-based human-computer interaction.
 
-In the proposed topic, a given microcontroller board should be programmed to _read sensor data_ via __I2C__ or SPI from an attached state-of-the-art Bosch Sensortec BMP581 MEMS air pressure sensor. The acquired data should be _transmitted via the integrated Bluetooth Low Energy (BLE) chip of the µC to a recording device. In order to verify the functionality of the setup, first datasets of human activities like walking on level ground, up stairs, and downstairs with a few different placements of the sensors on the human body, e.g., foot and wrist, should be recorded. Finally, the quality of acquired datasets and the different sensor placements should be discussed regarding their usefulness for the anticipated activity recognition purpose.
+In the proposed topic, a given microcontroller board should be programmed to _read sensor data_ via __I2C__ or SPI from an attached state-of-the-art Bosch Sensortec BMP581 MEMS air pressure sensor. The acquired data should be _transmitted via the Bluetooth Low Energy (BLE)_ chip integrated on the µC to a recording device. In order to verify the functionality of the setup, _datasets should be recorded_ of human activities like walking on level ground, up stairs, and downstairs with a few different placements of the sensors on the human body, e.g., foot and wrist. Finally, the quality of acquired datasets and the different sensor placements should be _discussed_ regarding their usefulness for the anticipated activity recognition purpose.
 
 ## Tasklist
 
 * Familiarization with the air pressure sensor, the microcontroller board, and its development tools. **_DONE_**
 * Implementation of the sensors driver and the reading of sensor data via I2C. **_DONE_**
 * Implementation of a Bluetooth Low Energy transmission of the sensor data. **_DONE_**
-* Recording of air pressure signals for different walking scenarios when the
-sensor is attached to the shoe or wrist. **_IN WORK_**
-* Discussion of the acquired sensor signals regarding its usefulness for activity recognition
-* Documentation of the acquired results
+* Recording of air pressure signals for different walking scenarios when the sensor is attached to the shoe or wrist. **_IN WORK_**
+* Discussion of the acquired sensor signals regarding its usefulness for activity recognition.
+* Documentation of the acquired results.
 
 ## Proposed Solution
 
@@ -29,16 +28,22 @@ The proposed solution is two parts:
 * A Python client on a Windows PC:
   * Establishes a connection to the GATT Server on the nRF and receives the air pressure and timestamp values.
   * Plots the values of pressure as a function of time
+ 
+## Requirements
+
+### For the server side: Microcontroller
+
+### For the client side: Recording Device
 
 ## Get started with the project
 
-### For the server side
+### For the server side: Microcontroller
 
-1. Flash the code onto the uC: This code was written for the nRF52832 and was tested on it alone, but should work for similar boards with a few minor adjustments.
+1. Flash the code onto the µC: This code was written for the nRF52832 and was tested on it alone, but should work for similar boards with a few minor adjustments.
 2. That's it. You should already see the device withe the name BMP581 if you do a scan for BLE devices.
 3. If not, try to reset the board.
 
-### For the client side
+### For the client side: Recording device
 
 1. Navigate to the directory `python_client/`.
 2. Run the command `python gatt_client.py`.
