@@ -1,26 +1,37 @@
-from datetime import datetime
+from typing import List
 
 import pandas as pd
 import matplotlib.pyplot as plt
 
-NOW = datetime.now().strftime("%Y-%m-%d_%H_%M")  # Timestamp for the file name
+from build_csv import *
+
+NOW = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
 # Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
 TAG = "CALIBRATE"
-FILENAME = "LOG_CALIBRATE.csv"
-FILENAME_PNG = "LOG_CALIBRATE.png"
+FILENAME_PNG = f"./pressure_logs/LOG_{TAG}_{NOW}.png"
+FILENAME_TEST = f"./pressure_logs/LOG_CALIBRATE_2024-02-10_16-23.csv"
 
 
 def plot_values():
     df = pd.read_csv(FILENAME, sep=",")
     df.head()
 
-    X_Data = df['timestamp']
-    Y_Data = df['pressure_values']
+    # Todo: Preprocessing:
+    # Extract the data from csv
+    x_data: pd.DataFrame = df['timestamp'] - df['timestamp'].iloc[0]
+    # x_data.to_datetime(df['timestamp'], unit='ms')
+    y_data = df['pressure_values']
+    f, ax = plt.subplots(1)
+    # TODO: Make a better plot
+    # Label the plot
+    plt.xlabel("Time in ms")
+    plt.ylabel("Pressure in Pa")
+    plt.title(f'Measurements @{NOW}\n Activity: {TAG} Duration:{x_data.iloc[-1]}')
 
     # Plot the Data
-    # TODO: Make a better plot
-    plt.plot(X_Data, Y_Data, 'r-', lw=1)
-    # plt.show()
+    ax.plot(x_data, y_data, 'r-')
+    # ax.set_ylim(ymin=98000, ymax=103000)
+    plt.show()
 
     # Save the plot as PNG
     plt.savefig(FILENAME_PNG)

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 
-NOW = datetime.now().strftime("%Y-%m-%d_%H_%M")  # Timestamp for the file name
+NOW = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
 # Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
 TAG = "CALIBRATE"
 FILENAME = f"./pressure_logs/LOG_{TAG}_{NOW}.csv"
@@ -19,7 +19,7 @@ def build_csv():  # Build a csv from the file of raw data
         index = 0
         while index < len(lines):
             destination_file.write(lines[index])
-            index += 3
+            index += 2
 
         destination_file.close()
         source_file.close()

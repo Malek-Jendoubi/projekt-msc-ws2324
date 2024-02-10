@@ -16,9 +16,14 @@
 
 struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
+
+/* Mutex should not be used in ISR*/
+static bool busy;
+
 char frame_ts[10];
 char frame_sensor[8];
-char frame_payload[SIZE_PAYLOAD];
+
+static char frame_payload[SIZE_PAYLOAD];
 
 /*Variables for the frame -- Timestamp*/
 uint32_t timestamp_ms = 0;
@@ -28,7 +33,7 @@ void new_packet()
 {
     sprintf(frame_sensor, "%06lu", (unsigned long)sensor_data.pressure);
     sprintf(frame_ts, "%08lu", (unsigned long)timestamp_ms);
-
+    /* TODO: Critical section*/
     sprintf(frame_payload, "%s,%s\n", frame_ts, frame_sensor);
 }
 

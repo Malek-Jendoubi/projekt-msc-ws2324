@@ -10,7 +10,7 @@
 
 #include "main.h"
 
-static uint8_t frame_payload[20];
+static char frame_payload[20];
 
 /* LBS Service UUID. */
 #define BT_UUID_LBS_VAL \
