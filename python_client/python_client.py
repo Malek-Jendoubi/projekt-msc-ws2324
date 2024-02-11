@@ -41,7 +41,7 @@ async def notification_handler(characteristic: BleakGATTCharacteristic, data: by
         return
     else:
         write_to_file(str(sensor_value), FILE_RAW, "a")
-    return
+        return
 
 
 async def main():
@@ -55,7 +55,7 @@ async def main():
 
     print(f"Trying to connect to {device}...")
 
-    async with BleakClient(device, timeout=1) as client:
+    async with BleakClient(device, timeout=5) as client:
         print("Connected")
         await client.start_notify(CHAR_PRES_UUID, notification_handler)
         print(f"Gathering samples for {LOG_DURATION} seconds starting from {NOW}")
@@ -65,7 +65,7 @@ async def main():
 
     build_csv()
 
-    plot_values()
+    plot_values(LOG_DURATION)
 
 
 if __name__ == "__main__":
