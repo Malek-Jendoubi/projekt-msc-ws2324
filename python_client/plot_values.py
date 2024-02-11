@@ -13,21 +13,22 @@ FILENAME_TEST = f"./pressure_logs/LOG_CALIBRATE_2024-02-11_14-32.csv"
 
 
 def plot_values(log_duration=0):
-    df = pd.read_csv(FILENAME_TEST, sep=",")
+    df = pd.read_csv(FILENAME, sep=",")
+    # df = pd.read_csv(FILENAME_TEST, sep=",")
     df.head()
 
     # Todo: Preprocessing:
     # Extract the data from csv
     # Time Dataframe
-    x_data: pd.DataFrame = df['timestamp'] - df['timestamp'].iloc[0]
+    x_data = df['timestamp'] - df['timestamp'].iloc[0]
     # x_data.to_datetime(df['timestamp'], unit='ms')
     pressure_values = df['pressure_values']
 
     # Post-processing of data to get a measure of elevation
     elevation_data = df['pressure_values'].iloc[::-1]
     # Smooth the curves with a rolling average
-    elevation_data_rm = df.rolling(window=5)['pressure_values'].mean()
-    elevation_data_rm = elevation_data_rm
+    elevation_data_rm = elevation_data.rolling(window=5)[1].mean()
+
     print(elevation_data)
     print(elevation_data_rm)
 
@@ -37,17 +38,17 @@ def plot_values(log_duration=0):
     plt.title(f'Measurements @{NOW}\n Activity: {TAG}\n Duration:{log_duration}s\n')
 
     # Plot the pressure data
-    plt.subplot(3, 1, 1)
-    plt.ylabel("Pressure in Pa")
-    plt.plot(x_data, pressure_values, 'r-')
+    # plt.subplot(3, 1, 1)
+    # plt.ylabel("Pressure in Pa")
+    # plt.plot(x_data, pressure_values, 'r-')
 
     # Plot the elevation data
-    plt.subplot(3, 1, 2)
-    plt.ylabel("Elevation level")
-    plt.plot(x_data, elevation_data, 'r')
+    # plt.subplot(3, 1, 2)
+    # plt.ylabel("Elevation level")
+    # plt.plot(x_data, elevation_data, 'r')
 
     # Plot the elevation data
-    plt.subplot(3, 1, 3)
+    plt.subplots(1)
     plt.ylabel("Elevation level")
     plt.plot(x_data, elevation_data_rm, 'r')
 
