@@ -13,7 +13,7 @@ from build_csv import *
 SECONDS = 1
 MINUTES = 60
 
-LOG_DURATION = 10 * SECONDS  # Logging time
+LOG_DURATION = 30 * SECONDS  # Logging time
 
 DEVICE_NAME = "BMP581"
 CHAR_PRES_UUID = "00001526-1212-efde-1523-785feabcd123"

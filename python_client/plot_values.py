@@ -9,7 +9,7 @@ NOW = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
 # Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
 TAG = "CALIBRATE"
 FILENAME_PNG = f"./pressure_logs/LOG_{TAG}_{NOW}.png"
-FILENAME_TEST = f"./pressure_logs/LOG_CALIBRATE_2024-02-10_16-23.csv"
+FILENAME_TEST = f"./pressure_logs/LOG_CALIBRATE_2024-02-11_14-32.csv"
 
 
 def plot_values(log_duration=0):
