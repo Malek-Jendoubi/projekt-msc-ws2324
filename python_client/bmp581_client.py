@@ -14,11 +14,9 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from plot_values import *
 from build_csv import *
 
-FILE_RAW = "./pressure_logs/RAW_LOG.csv"
 
-
-def write_to_file(str_value=None, file=FILE_RAW, permission="a"):
-    file = open(file, permission)
+def write_to_file(str_value=None, permission="a"):
+    file = open("./RAW_LOG.csv", permission)
     file.writelines(str_value)
     file.writelines("\n")
     file.close()
@@ -31,19 +29,20 @@ async def notification_handler(characteristic: BleakGATTCharacteristic, data: by
     except UnicodeDecodeError:
         return
     else:
-        write_to_file(str(sensor_value), FILE_RAW, "a")
+        write_to_file(str(sensor_value), "a")
         return
 
 
-async def bmp581_client(log_duration=30):
+async def bmp581_client(log_duration=20):
     device_name = "BMP581"
     char_pres_uuid = "00001526-1212-efde-1523-785feabcd123"
 
-    open(FILE_RAW, "w")
+    open("./RAW_LOG.csv", "w")
     print("Looking for BMP581...")
 
     try:
         device: BLEDevice = await BleakScanner.find_device_by_name(device_name)
+        print(f"Trying to connect to {device}...")
 
         if device is None:
             print(f"Could not find device with {device_name}")
@@ -60,7 +59,12 @@ async def bmp581_client(log_duration=30):
             print("Disconnected")
             await client.stop_notify(char_pres_uuid)
 
-        print(f"Trying to connect to {device}...")
+        print(f"LOG_RAW.csv saved.")
+        build_csv()
+        print(f"Log.csv saved.")
+        plot_values()
+        print(f"Plot Values from Log.csv")
+
     except IOError:
         print("No BLE Peripheral detected.\nActivate Bluetooth on your computer or update your driver.")
         return -1

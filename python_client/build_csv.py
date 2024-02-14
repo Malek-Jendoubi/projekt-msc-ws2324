@@ -5,8 +5,8 @@ def build_csv():  # Build a csv from the file of raw data
     now = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
     # Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
     tag = "CALIBRATE"
-    filename = f"./pressure_logs/LOG.csv"
-    file_raw = "./pressure_logs/RAW_LOG.csv"  # .csv for gitignore sake
+    filename = f"./LOG.csv"
+    file_raw = "./RAW_LOG.csv"  # .csv for gitignore sake
 
     with open(file_raw, "r") as source_file, open(filename, "w") as destination_file:
 

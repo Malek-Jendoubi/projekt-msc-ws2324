@@ -6,48 +6,29 @@ from nrf_log_parser import parse_app
 
 if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        prog='BMP581_Client',
-        description='Connect to BMP581 Sensor,\r\n '
-                    'get the sensor pressure value, '
-                    'parse the received data, '
-                    'plot the pressure values',
-        epilog='bottom text')
+    valid_input = False
+    log_duration = 0
 
-    parser.add_argument(
-        "duration",
-        action="store_true",
-        type=int,
-        help="Duration of the log session",
-    )
+    while not valid_input:
+        try:
+            log_duration = int(input("Enter the desired log duration in seconds:"))
+            valid_input = True
+        except ValueError:
+            print("Invalid input. Please enter a valid log duration. 0 to take the data from Log.csv\n")
+            valid_input = False
 
-    parser.add_argument(
-        "-du",
-        "--duration_unit",
-        action="store_true",
-        type=str,
-        help="Unit of the Duration of the log session: s for seconds or m for minutes",
-    )
-
-    args = parser.parse_args()
-    print(args)
-
-    # Pre-calculate the log_duration = log_time * unit
-    log_duration = args.duration * (30 if args.duration_unit == "m" else 1)
+    # log_duration = args.duration * (30 if args.duration_unit == "m" else 1)
     print(f"log_duration={log_duration} seconds.")
 
-    if log_duration:
-        print(f'bmp581_client({args.duration})')
-        bmp581_client(log_duration)
-        file_path_csv: str = build_csv()
-        print(f"file_path_csv: str = {file_path_csv}")
-        plot_values(file_path_csv, log_duration)
-        print(f"plot_values({file_path_csv}, {log_duration})")
+    if log_duration > 0:
+        result = 0
+        print(f'bmp581_client({log_duration})')
+        result = bmp581_client(log_duration)
     else:
-        print("Plotting phone_logs/Log.txt ...")
+        print("No duration specified.Will plot the pressure values from Log.txt")
+        print("Parsing Log.txt ...")
         parse_app()
-        print(f"file_path_csv: str = {file_path_csv}")
-        plot_values(file_path_csv, log_duration)
-        print(f"plot_values({file_path_csv}, {log_duration})")
-
+        print(f"Log.csv saved.")
+        plot_values()
+        print(f"Plot Values from Log.csv")
 

@@ -4,7 +4,7 @@ new_file_lines: list = []
 
 
 def parse_app():
-    with open("phone_logs/Log.txt", 'r') as f:
+    with open("./Log.txt", 'r') as f:
         log_file_lines = f.readlines()
 
     # Regex to test against
@@ -38,7 +38,7 @@ def parse_app():
 
         # Write 1 line, skip 2 (garbage values in )
         for line in lines_decoded:
-            print(line[:15])
+            # print(line[:15])
             destination_file.write(line[:15] + "\n")
 
         destination_file.close()
