@@ -11,7 +11,4 @@ python_client/__pycache__/*
 *.png
 *.csv
 projektmsc-jendoubi-wise2223.code-workspace
-python_client/__pycache__/bmp581_client.cpython-312.pyc
-python_client/__pycache__/build_csv.cpython-312.pyc
-python_client/__pycache__/nrf_log_parser.cpython-312.pyc
-python_client/__pycache__/plot_values.cpython-312.pyc
+__*__
