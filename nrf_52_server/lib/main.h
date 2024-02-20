@@ -3,6 +3,9 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/i2c.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/gpio.h>
+#include <string.h>
+
 
 #include "bmp5.h"
 #include "common.h"
@@ -10,6 +13,7 @@
 #define SIZE_PAYLOAD 20
 
 void bluetooth_advertiser_init();
+
 
 /*!
  *  @brief This internal API is used to set configurations of the sensor.

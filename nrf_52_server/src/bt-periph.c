@@ -1,10 +1,16 @@
 #include "bt-periph.h"
+#include "main.h"
+
+#define LED_BLUE_NODE DT_ALIAS(led1)  // LED_RED_NODE = led0 defined in the .dts file
 
 /*Prototype for BLE connection callbacks*/
 static void on_connected(struct bt_conn *conn, uint8_t err);
 static void on_disconnected(struct bt_conn *conn, uint8_t reason);
 void on_le_param_updated(struct bt_conn *conn, uint16_t interval, uint16_t latency, uint16_t timeout);
 void on_le_phy_updated(struct bt_conn *conn, struct bt_conn_le_phy_info *param);
+
+/* LED config*/
+static const struct gpio_dt_spec led_blue = GPIO_DT_SPEC_GET(LED_BLUE_NODE, gpios);
 
 static bool notify_mysensor_enabled;
 
@@ -23,7 +29,7 @@ struct bt_conn *my_conn = NULL;
 
 /* ## GATT Server ## */
 /* Define the configuration change callback function for the MYSENSOR characteristic */
-static void mylbsbc_ccc_mysensor_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
+static void mylbs_ccc_mysensor_cfg_changed(const struct bt_gatt_attr *attr, uint16_t value)
 {
     notify_mysensor_enabled = (value == BT_GATT_CCC_NOTIFY);
 }
@@ -38,6 +44,8 @@ static ssize_t read_char(struct bt_conn *conn, const struct bt_gatt_attr *attr, 
 
     return bt_gatt_attr_read(conn, attr, buf, len, offset, value, strlen(value));
 }
+
+
 /* LED Button Service Declaration */
 BT_GATT_SERVICE_DEFINE(
     my_lbs_svc, 
@@ -49,7 +57,7 @@ BT_GATT_SERVICE_DEFINE(
                             BT_GATT_PERM_READ,
                             read_char,
                             NULL, frame_payload),
-    BT_GATT_CCC(mylbsbc_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+    BT_GATT_CCC(mylbs_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
     );
 
 /* Create an LE Advertising Parameters variable */
@@ -160,6 +168,7 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     update_mtu(my_conn);
 
     /* TODO: Turn the connection status LED on */
+    gpio_pin_set_dt(&led_blue, 1);
 }
 
 void on_disconnected(struct bt_conn *conn, uint8_t reason)
@@ -168,6 +177,7 @@ void on_disconnected(struct bt_conn *conn, uint8_t reason)
     bt_conn_unref(my_conn);
 
     /* TODO: Turn the connection status LED off */
+    gpio_pin_set_dt(&led_blue, 0);
 }
 
 /* Callback for connection parameter log */
@@ -207,14 +217,6 @@ void on_le_data_len_updated(struct bt_conn *conn, struct bt_conn_le_data_len_inf
     printk("Data length updated. Length %d/%d bytes, time %d/%d us\r\n", tx_len, rx_len, tx_time, rx_time);
 }
 
-/* Declare the connection_callback structure */
-struct bt_conn_cb connection_callbacks = {
-    .connected = on_connected,
-    .disconnected = on_disconnected,
-    .le_param_updated = on_le_param_updated,
-    .le_phy_updated = on_le_phy_updated,
-    .le_data_len_updated = on_le_data_len_updated,
-};
 
 /* Implement callback function for MTU exchange */
 static void exchange_func(struct bt_conn *conn, uint8_t att_err,
@@ -229,8 +231,30 @@ static void exchange_func(struct bt_conn *conn, uint8_t att_err,
     }
 }
 
+/* Declare the connection_callback structure */
+struct bt_conn_cb connection_callbacks = {
+    .connected = on_connected,
+    .disconnected = on_disconnected,
+    .le_param_updated = on_le_param_updated,
+    .le_phy_updated = on_le_phy_updated,
+    .le_data_len_updated = on_le_data_len_updated,
+};
+
 void bluetooth_advertiser_init()
-{ /* Enable the Bluetooth LE stack */
+{ 
+    /* Configure LED */
+    int ret_led;
+    if (!gpio_is_ready_dt(&led_blue)){
+        return 0;
+    }
+    ret_led = gpio_pin_configure_dt(&led_blue, GPIO_OUTPUT_ACTIVE);
+    if (ret_led < 0){
+        return 0;
+    }
+    gpio_pin_set_dt(&led_blue, 0);
+
+    
+    /* Enable the Bluetooth LE stack */
     int bt_err;
 
     bt_conn_cb_register(&connection_callbacks);

@@ -92,6 +92,7 @@ async def bmp581_client(log_duration=20):
 
 if __name__ == "__main__":
     result: int = asyncio.run(bmp581_client())
+    print(f"bmp581_client returned wit return code: {result}")
 
     if result != 0:
         print("Unexpected result from . Will plot the pressure values from Log.txt")

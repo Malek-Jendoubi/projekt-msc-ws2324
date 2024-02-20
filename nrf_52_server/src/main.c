@@ -9,8 +9,10 @@
 #include "bt-periph.h"
 #include "bmp5.h"
 
-#include <string.h>
-#include <zephyr/kernel.h>
+/* Declare the LED devices*/
+#define LED_RED_NODE DT_ALIAS(led0)  // LED_RED_NODE = led0 defined in the .dts file
+
+static const struct gpio_dt_spec led_red = GPIO_DT_SPEC_GET(LED_RED_NODE, gpios);
 
 #define SAMPLING_INTERVAL_MS 12
 
@@ -39,14 +41,23 @@ void new_packet()
 
 int main(void)
 {
+    /* Initialize and check LED devices*/
+    if (!gpio_is_ready_dt(&led_red)){
+        return 0;
+    }
+
+    int ret_led;
+    ret_led = gpio_pin_configure_dt(&led_red, GPIO_OUTPUT_ACTIVE);
+    if (ret_led < 0){
+        return 0;
+    }
+
+    /* Declare BMP5 device variables*/
     struct bmp5_dev dev;
     struct bmp5_osr_odr_press_config osr_odr_press_cfg = {0};
-
-
     int8_t bmp5_rslt;
 
     bmp5_rslt = bmp5_interface_init(&dev, BMP5_I2C_INTF);
-
     if (bmp5_rslt == BMP5_OK)
     {
         bmp5_soft_reset(&dev);
@@ -61,11 +72,13 @@ int main(void)
 
     /* Initial sensor values*/
     get_sensor_data(&osr_odr_press_cfg, &dev);
+    gpio_pin_set_dt(&led_red, 1);
 
     /* Start BLE stack and setup/run GATT Server*/
     bluetooth_advertiser_init();
     while (1)
     {
+        /* TODO: Only get the data from sensor when subscribed to*/
         /* Get sensor data from the BMP581*/
         bmp5_rslt = get_sensor_data(&osr_odr_press_cfg, &dev);
 
@@ -73,7 +86,6 @@ int main(void)
         new_packet();
         /* Send the packet to the characteristic*/
         sensor_notify(frame_payload);
-
         k_msleep(SAMPLING_INTERVAL_MS);
     }
     return 0;
