@@ -1,8 +1,8 @@
 # Build dirs
-nrf_52_server/pristine/*
-nrf_52_server/build/*
-python_client/pressure_logs/*
-python_client/__pycache__/*
+nrf_52_server/pristine/
+nrf_52_server/build/
+python_client/pressure_logs/
+python_client/__pycache__/
 
 # All hidden dirs and files except gitignore
 .*

@@ -1,17 +1,14 @@
-import math
-from typing import List
+from datetime import datetime
 
+import numpy
 import pandas as pd
 import matplotlib.pyplot as plt
-
-from build_csv import *
 
 
 def plot_values():
     now = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
     # Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
     tag = "CALIBRATE"
-    filename_png = f"./LOG_{tag}_{now}.png"
 
     df = pd.read_csv("./LOG.csv", sep=",")
     df.head()
@@ -21,11 +18,13 @@ def plot_values():
     # Time Dataframe
     # print(df)
     df.sort_values(['timestamp'])
-    x_data = df['timestamp']
-    # print(x_data)
+    x_data = df['timestamp'] - df['timestamp'][0]
+
     # Post-processing of data to get a measure of elevation
     # Inverse the df: Pressure is
-    # df['pressure_values'] = df['pressure_values'].iloc[::-1]
+    df['pressure_values'] = df['pressure_values'].iloc[::-1]
+
+    df_running_mean = running_mean(df['pressure_values'], 10)
     # Subtract from Air Pressure Value at ground level
     elevation_values = 101325 - df['pressure_values']
 
@@ -34,17 +33,24 @@ def plot_values():
     plt.title(f'Measurements of Elevation\n')
 
     # Plot the pressure data
-    plt.subplots(1)
+    plt.plot()
     plt.ylabel("Pressure in Pa")
-    plt.plot(x_data, elevation_values, 'r-')
+    plt.xlabel("Tine in ms")
+    plt.style.use('fast')
+    plt.plot(x_data, elevation_values)
+
+    # Save the figure as PNG
+    plt.savefig(f"./plots/LOG_{tag}_{now}.PNG", dpi=1000)
 
     # Show the figure
     plt.show()
 
-    # Save the figure as PNG
-    plt.savefig(filename_png)
+    print(f"Figure saved to ./LOG_{tag}_{now}.PNG")
 
-    print(f"Figure saved to: {filename_png}")
+
+def running_mean(data, window_width):
+    cumsum = numpy.cumsum(numpy.insert(data, 0, 0))
+    return (cumsum[window_width:] - cumsum[:-window_width]) / float(window_width)
 
 
 if __name__ == "__main__":
