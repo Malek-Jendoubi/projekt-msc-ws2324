@@ -8,6 +8,9 @@ python_client/pressure_logs/
 .*
 !/.gitignore
 
+# Reading results
 *.png
 *.csv
-projektmsc-jendoubi-wise2223.code-workspace
+
+#IDE Specific files
+*.code-workspace

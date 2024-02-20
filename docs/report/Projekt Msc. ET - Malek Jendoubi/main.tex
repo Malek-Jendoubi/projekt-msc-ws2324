@@ -1,0 +1,52 @@
+% Statt "de" kann hier auch "en" stehen, wenn die Arbeit auf Englisch verfasst wird
+% Entweder "darkstyle" oder "lightstyle"
+\documentclass[en, darkstyle]{unirostock}
+% Für die Quellenangaben, weitere Informationen https://de.overleaf.com/learn/latex/Bibliography_management_with_biblatex
+\usepackage[backend=biber,style=alphabetic,maxbibnames=99,backref=true,citestyle=alphabetic]{biblatex}
+\addbibresource{lit.bib}
+
+% Welche Bedingungen gibt es für die Verbreitung der Arbeit?
+% creative-commons: Creative Commons Lizenz, Namensnennung - Weitergabe erlaubt unter gleichen Bedingungen 
+% private: Veröffentlichung und Veränderung nur nach Rücksprache mit dem Autor
+\license{creative-commons}
+
+\author{Malek Jendoubi}
+\enrolmentnumber{221202139} % Matrikelnummer
+
+\title{Feasibility Study of Human Activity Recognition with Air Pressure Sensors}
+\type{Project Msc. Elektrotechnik}
+
+\course{Elektrotechnik}
+\supervisor{Dr.-Ing. Florian Grützmacher}
+
+\faculty{Fakultät für Informatik und Elektrotechnik}
+\institute{Institut für Elektrotechnik}
+\workinggroup{Lehrstuhl für Eingebettete Systeme}
+
+\begin{document}
+\maketitle
+
+\pagenumbering{Roman}
+
+\tableofcontents % Inhaltsverzeichnis.
+\clearpage
+
+\setstretch{1.263}
+\pagenumbering{gobble}
+\clearpage
+
+\pagenumbering{arabic} % Ab hier folgt die "arabische" Seitennummerierung.
+
+% Im Ordner chapter sollte für jedes Kapitel eine Datei angelegt und hier eingebunden werden.
+% Das erhöht die Übersicht.
+\input{chapter/1_introduction}
+\input{chapter/2_solution}
+\input{chapter/3_results}
+\input{chapter/4_conclusion}
+
+\clearpage
+\listoffigures % Abbildungsverzeichnis
+\printbibliography % Quellenverzeichnis
+\clearpage
+\input{chapter/erklaerung}
+\end{document}

@@ -1,0 +1,50 @@
+\chapter{Proposed Solution}
+\printmyminitoc{1} % Wenn es mehr als einen Abschnitt gibt
+\section{Proposed Solution}
+Our solution consists of an nRF52832 microcontroller reading the values from a BMP581 Pressure Sensor through its I2C interface. The Microcontroller then sends the pressure sensor values as well as a timestamp of the values via Bluetooth Low Energy to client subscribed to a GATT characteristic.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.4\linewidth]{images/BMP581_fritzing.png}
+    \caption{Proposed solution}
+    \label{fig:solution}
+\end{figure}
+
+We can then either read the values with nRF Connect BLE App, store them in a log file, and then feed them to a python script that will parse the pressure values.
+
+\section{Server Side}
+\par
+Here talk about the Server Side.
+
+\subsection{Hardware}
+\par
+Here talk about the hardware part. 
+
+\subsubsection{Pressure sensor: BMP581}
+\par
+Here talk about the Pressure sensor: BMP581. 
+
+\subsubsection{Microcontroller: nRF52}
+\par
+Here talk about Microcontroller: nRF52. 
+
+\subsubsection{Additions to the experimental setup}
+\par
+Here talk about the additions to the experimental setup to help in taking the measurements. 
+
+
+\section{Client Side}
+\par
+Here talk about the Client Side.
+
+\subsubsection{Hardware}
+\par
+Here talk about the PC BLE interface. 
+
+\subsubsection{Software}
+\par
+Description of the Python client.
+
+\subsection{Experimental Setup}
+\par
+Here is a description of the experimental setup on MS Visio.
