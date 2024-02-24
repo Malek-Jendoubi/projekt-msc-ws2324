@@ -49,10 +49,10 @@ static ssize_t read_char(struct bt_conn *conn, const struct bt_gatt_attr *attr, 
 /* LED Button Service Declaration */
 BT_GATT_SERVICE_DEFINE(
     my_lbs_svc, 
-    BT_GATT_PRIMARY_SERVICE(BT_UUID_LBS),
+    BT_GATT_PRIMARY_SERVICE(BT_UUID_MY_SERVICE),
     /* Create and add the MYSENSOR characteristic and its CCCD  */
     /* Characteristic Declaration */
-    BT_GATT_CHARACTERISTIC( BT_UUID_LBS_MYSENSOR,
+    BT_GATT_CHARACTERISTIC( BT_UUID_MY_SERVICE_SENSOR,
                             BT_GATT_CHRC_NOTIFY,
                             BT_GATT_PERM_READ,
                             read_char,
@@ -74,14 +74,13 @@ static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_NO_BREDR),
     BT_DATA_BYTES(BT_DATA_UUID16_ALL, 0xaa, 0xfe),
     BT_DATA_BYTES(BT_DATA_SVC_DATA16,
-                  0xaa, 0xfe, /* Eddystone UUID: See Eddystone protocol Specs */
-                  /*https://github.com/google/eddystone/blob/master/protocol-specification.md*/
-                  0x10, /* Eddystone-URL frame type */
-                  0x00, /* Calibrated Tx power at 0m */
-                  0x00, /* URL Scheme Prefix http://www. */
-                  'z', 'e', 'p', 'h', 'y', 'r',
-                  'p', 'r', 'o', 'j', 'e', 'c', 't',
-                  0x08) /* .org */
+                  0xaa, 0xfe, 
+                  /* 
+                  Eddystone UUID: See Eddystone protocol Specs 
+                  https://github.com/google/eddystone/blob/master/protocol-specification.md
+                  */
+                  'B', 'M', 'P', '5', '8', '1') 
+                  /* BMP581 */
 };
 
 /* Declare the scan response packet - Set Scan Response data */
