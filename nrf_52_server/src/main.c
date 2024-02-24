@@ -20,7 +20,7 @@ struct bmp5_sensor_data sensor_data;
 uint32_t pressure_data = 0;
 
 /* Mutex should not be used in ISR*/
-static bool busy;
+/* static bool busy;*/
 
 char frame_ts[10];
 char frame_sensor[8];

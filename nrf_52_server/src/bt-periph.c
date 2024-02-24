@@ -245,11 +245,11 @@ void bluetooth_advertiser_init()
     /* Configure LED */
     int ret_led;
     if (!gpio_is_ready_dt(&led_blue)){
-        return 0;
+        return;
     }
     ret_led = gpio_pin_configure_dt(&led_blue, GPIO_OUTPUT_ACTIVE);
     if (ret_led < 0){
-        return 0;
+        return;
     }
     gpio_pin_set_dt(&led_blue, 0);
 
