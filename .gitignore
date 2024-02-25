@@ -10,6 +10,7 @@ python_client/pressure_logs/
 
 # Reading results
 *.png
+*.txt
 *.csv
 
 #IDE Specific files

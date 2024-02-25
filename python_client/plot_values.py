@@ -40,12 +40,18 @@ def plot_values():
     plt.plot(x_data, elevation_values)
 
     # Save the figure as PNG
-    plt.savefig(f"./plots/LOG_{tag}_{now}.PNG", dpi=1000)
+    plt.savefig(f"./plots/FIGURE_{now}.PNG", dpi=1000)
+    
+    # Save .csv LOG
+    with open("./LOG.csv", 'r') as f:
+        open(".plots/LOG_{now}.csv", 'w')
+
 
     # Show the figure
     plt.show()
 
-    print(f"Figure saved to ./LOG_{tag}_{now}.PNG")
+    print(f"Figure saved to ./FIGURE_{now}.PNG")
+    print(f"Values saved to ./LOG_{now}.PNG")
 
 
 def running_mean(data, window_width):
