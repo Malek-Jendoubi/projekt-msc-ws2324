@@ -13,40 +13,10 @@
 
 
 &i2c0 {
-  /*
-  compatible = "nordic,nrf-twim";
-  zephyr,concat-buf-size = <1024>;
-  */
   status = "okay";
   bmp581: bmp581@46 {
     compatible = "i2c-device";
     reg = <0x46>;
     label = "BMP581";
   };
-};
-
-&pwm0 {
-  status = "okay";
-};
-
-&i2c0_default {
-  group1 {
-      psels = <NRF_PSEL(TWIM_SCL, 0, 26)>, <NRF_PSEL(TWIM_SDA, 0, 25)>;
-      bias-pull-up;
-  };
-};
-
-&i2c0_sleep {
-  group1 {
-      psels = <NRF_PSEL(TWIM_SCL, 0, 26)>, <NRF_PSEL(TWIM_SDA, 0, 25)>;
-      bias-pull-up;
-      low-power-enable;
-  };
-};
-
-////##################
-
-
-&i2c1 {
-  status = "disabled";
 };

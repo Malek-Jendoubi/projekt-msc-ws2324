@@ -6,10 +6,6 @@ import matplotlib.pyplot as plt
 
 
 def plot_values():
-    now = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
-    # Tags include but are not limited to: UPSTAIRS, DOWNSTAIRS, WALKING, STANDING, CALIBRATE
-    tag = "CALIBRATE"
-
     df = pd.read_csv("./LOG.csv", sep=",")
     df.head()
 
@@ -34,18 +30,22 @@ def plot_values():
 
     # Plot the pressure data
     plt.plot()
-    plt.ylabel("Pressure in Pa")
-    plt.xlabel("Tine in ms")
+    plt.ylabel("Elevation Measure / Pressure at sea level (101325 Pa)")
+    plt.xlabel("Time in ms")
     plt.style.use('fast')
     plt.plot(x_data, elevation_values)
+
+    now = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
 
     # Save the figure as PNG
     plt.savefig(f"./plots/FIGURE_{now}.PNG", dpi=1000)
     
     # Save .csv LOG
     with open("./LOG.csv", 'r') as f:
-        open(".plots/LOG_{now}.csv", 'w')
-
+        f_csv = open(f"./plots/LOG_{now}.csv", 'w')
+        lines_csv = f.readlines()
+        f_csv.writelines(lines_csv)
+        f_csv.close()
 
     # Show the figure
     plt.show()
