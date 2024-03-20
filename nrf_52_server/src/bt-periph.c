@@ -74,13 +74,8 @@ static const struct bt_data ad[] = {
     BT_DATA_BYTES(BT_DATA_FLAGS, BT_LE_AD_NO_BREDR),
     BT_DATA_BYTES(BT_DATA_UUID16_ALL, 0xaa, 0xfe),
     BT_DATA_BYTES(BT_DATA_SVC_DATA16,
-                  0xaa, 0xfe, 
-                  /* 
-                  Eddystone UUID: See Eddystone protocol Specs 
-                  https://github.com/google/eddystone/blob/master/protocol-specification.md
-                  */
-                  'B', 'M', 'P', '5', '8', '1') 
-                  /* BMP581 */
+                  0xaa, 0xfe,                       /* Eddystone UUID*/
+                  'B', 'M', 'P', '5', '8', '1')     /* BMP581 */
 };
 
 /* Declare the scan response packet - Set Scan Response data */
@@ -132,7 +127,7 @@ static void update_mtu(struct bt_conn *conn)
     }
 }
 
-/* Implement the callback functions */
+/* Implement the on connected callback functions */
 void on_connected(struct bt_conn *conn, uint8_t err)
 {
     if (err)
@@ -141,10 +136,11 @@ void on_connected(struct bt_conn *conn, uint8_t err)
         return;
     }
     printk("Connected\n\r");
+
     /* Increase the connection counter*/
     my_conn = bt_conn_ref(conn);
 
-    /* Declare a structure to store the connection parameters */
+    /* A structure to store the connection parameters */
     struct bt_conn_info info;
     err = bt_conn_get_info(conn, &info);
     if (err)
@@ -166,7 +162,7 @@ void on_connected(struct bt_conn *conn, uint8_t err)
     update_data_length(my_conn);
     update_mtu(my_conn);
 
-    /* TODO: Turn the connection status LED on */
+    /* Turn the connection status LED on */
     gpio_pin_set_dt(&led_blue, 1);
 }
 
@@ -175,7 +171,7 @@ void on_disconnected(struct bt_conn *conn, uint8_t reason)
     printk("Disconnected. Reason %d\n\r", reason);
     bt_conn_unref(my_conn);
 
-    /* TODO: Turn the connection status LED off */
+    /* Turn the connection status LED off */
     gpio_pin_set_dt(&led_blue, 0);
 }
 

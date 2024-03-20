@@ -38,11 +38,11 @@ def plot_values():
     now = datetime.now().strftime("%Y-%m-%d_%H-%M")  # Timestamp for the file name
 
     # Save the figure as PNG
-    plt.savefig(f"./plots/FIGURE_{now}.PNG", dpi=1000)
+    plt.savefig(f"./FIGURE_{now}.PNG", dpi=1000)
     
     # Save .csv LOG
     with open("./LOG.csv", 'r') as f:
-        f_csv = open(f"./plots/LOG_{now}.csv", 'w')
+        f_csv = open(f"./LOG_{now}.csv", 'w')
         lines_csv = f.readlines()
         f_csv.writelines(lines_csv)
         f_csv.close()

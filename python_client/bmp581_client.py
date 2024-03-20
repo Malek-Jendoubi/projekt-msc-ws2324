@@ -53,7 +53,8 @@ async def bmp581_client(log_duration=20):
     print(f"log_duration={log_duration} seconds.")
 
     device_name = "BMP581"
-    char_pres_uuid = "00001526-1212-efde-1523-785feabcd123"
+    # cf. bt-periph.h mysensor char uuid
+    char_pres_uuid = "75c276c4-8f97-20bc-a143-b354244886d4"
 
     open("./RAW_LOG.csv", "w")
     print("Looking for BMP581...")
@@ -92,10 +93,9 @@ async def bmp581_client(log_duration=20):
 
 if __name__ == "__main__":
     result: int = asyncio.run(bmp581_client())
-    print(f"bmp581_client returned wit return code: {result}")
 
     if result != 0:
-        print("Unexpected result from . Will plot the pressure values from Log.txt")
+        print("Will plot the pressure values from Log.txt")
         print("Parsing Log.txt ...")
         parse_app()
         print(f"Log.csv saved.")

@@ -22,6 +22,7 @@ static char frame_payload[20];
 #define BT_UUID_MY_SERVICE BT_UUID_DECLARE_128(BT_UUID_MY_SERVICE_VAL)
 
 /* MYSENSOR characteristic UUID */
+/* Should correspond to the char uuid in the py client*/
 /* 75c276c4-8f97-20bc-a143-b354244886d4 */
 #define BT_UUID_MY_SERVICE_SENSOR_VAL 0xd4, 0x86, 0x48, 0x24, 0x54, 0xB3, \
 				0x43, 0xA1, \
