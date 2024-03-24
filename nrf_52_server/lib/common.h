@@ -127,4 +127,13 @@ void bmp5_coines_deinit(void);
 }
 #endif /* End of CPP guard */
 
+/*!
+ *  @brief This internal API is used to set configurations of the sensor.
+ *
+ *  @param[in,out] osr_odr_press_cfg : Structure instance of bmp5_osr_odr_press_config
+ *  @param[in] dev                   : Structure instance of bmp5_dev.
+ *
+ *  @return Status of execution.
+ */
+int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
 #endif /* _BMP5_COMMON_H */

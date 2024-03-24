@@ -31,20 +31,6 @@ static char frame_payload[20];
 				0xC4, 0x76, 0xC2, 0x75
 #define BT_UUID_MY_SERVICE_SENSOR BT_UUID_DECLARE_128(BT_UUID_MY_SERVICE_SENSOR_VAL)
 
-/*
-// Nordic LED Button Service characteristic UUID
-#define BT_UUID_LBS_VAL \
-	BT_UUID_128_ENCODE(0x00001523, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
-#define BT_UUID_LBS BT_UUID_DECLARE_128(BT_UUID_LBS_VAL)
-// MYSENSOR characteristic UUID
-#define BT_UUID_LBS_MYSENSOR_VAL \
-	BT_UUID_128_ENCODE(0x00001526, 0x1212, 0xefde, 0x1523, 0x785feabcd123)
-#define BT_UUID_LBS_MYSENSOR BT_UUID_DECLARE_128(BT_UUID_LBS_MYSENSOR_VAL)
-*/
-
-
-
-
 void bluetooth_advertiser_init();
 
 void sensor_notify(char* buf);

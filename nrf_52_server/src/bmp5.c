@@ -49,7 +49,7 @@
 
 /*!              Global Define
 ****************************************************************************/
-/*TODO: Power Up check never passes, BMP SENSOR doesn't finish configuring*/
+/*MODIFIED: Power Up check never passes, BMP SENSOR doesn't finish configuring*/
 #define POWERUP_CHECK 0 
 /******************************************************************************/
 

@@ -15,15 +15,6 @@
 void bluetooth_advertiser_init();
 
 
-/*!
- *  @brief This internal API is used to set configurations of the sensor.
- *
- *  @param[in,out] osr_odr_press_cfg : Structure instance of bmp5_osr_odr_press_config
- *  @param[in] dev                   : Structure instance of bmp5_dev.
- *
- *  @return Status of execution.
- */
-int8_t set_config(struct bmp5_osr_odr_press_config *osr_odr_press_cfg, struct bmp5_dev *dev);
 
 /*!
  *  @brief This internal API is used to get sensor data.

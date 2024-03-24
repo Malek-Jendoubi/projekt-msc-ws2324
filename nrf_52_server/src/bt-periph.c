@@ -39,14 +39,13 @@ static void mylbs_ccc_mysensor_cfg_changed(const struct bt_gatt_attr *attr, uint
 /* Notification handler*/
 static ssize_t read_char(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset)
 {
-    /* TODO: Crtitical section. on static variable*/
     const char *value = attr->user_data;
 
     return bt_gatt_attr_read(conn, attr, buf, len, offset, value, strlen(value));
 }
 
 
-/* LED Button Service Declaration */
+/* GATT Service Declaration */
 BT_GATT_SERVICE_DEFINE(
     my_lbs_svc, 
     BT_GATT_PRIMARY_SERVICE(BT_UUID_MY_SERVICE),
@@ -58,7 +57,7 @@ BT_GATT_SERVICE_DEFINE(
                             read_char,
                             NULL, frame_payload),
     BT_GATT_CCC(mylbs_ccc_mysensor_cfg_changed, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
-    );
+ );
 
 /* Create an LE Advertising Parameters variable */
 static struct bt_le_adv_param *adv_param = BT_LE_ADV_PARAM(
@@ -247,11 +246,9 @@ void bluetooth_advertiser_init()
         return;
     }
     gpio_pin_set_dt(&led_blue, 0);
-
-    
+   
     /* Enable the Bluetooth LE stack */
     int bt_err;
-
     bt_conn_cb_register(&connection_callbacks);
 
     bt_err = bt_enable(NULL);
@@ -261,6 +258,7 @@ void bluetooth_advertiser_init()
         return;
     }
     printk("Bluetooth initialized\n");
+
     /* Start advertising */
     bt_err = bt_le_adv_start(adv_param, ad, ARRAY_SIZE(ad), sd, ARRAY_SIZE(sd));
     if (bt_err)

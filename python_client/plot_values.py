@@ -9,10 +9,7 @@ def plot_values():
     df = pd.read_csv("./LOG.csv", sep=",")
     df.head()
 
-    # Todo: Preprocessing:
     # Extract the data from csv
-    # Time Dataframe
-    # print(df)
     df.sort_values(['timestamp'])
     x_data = df['timestamp'] - df['timestamp'][0]
 
@@ -24,7 +21,7 @@ def plot_values():
     # Subtract from Air Pressure Value at ground level
     elevation_values = 101325 - df['pressure_values']
 
-    # TODO: Make a better plot
+    # TODO: improve plot
     # Label the plot
     plt.title(f'Measurements of Elevation\n')
 
@@ -46,12 +43,12 @@ def plot_values():
         lines_csv = f.readlines()
         f_csv.writelines(lines_csv)
         f_csv.close()
+        print(f"Values of LOG saved to ./FIGURE_{now}.csv")
 
     # Show the figure
     plt.show()
 
-    print(f"Figure saved to ./FIGURE_{now}.PNG")
-    print(f"Values saved to ./LOG_{now}.PNG")
+    print(f"Figure saved to ./LOG_{now}.PNG")
 
 
 def running_mean(data, window_width):
