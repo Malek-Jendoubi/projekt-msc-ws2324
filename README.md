@@ -60,8 +60,6 @@ The nrf52832 is programmed with the nrf Connect SDK, preferably in Visual Studio
 
 1. Navigate to the directory `python_client/`.
 2. Run the command `python gatt_client.py`.
-3. Wait for the sampling period as the nRF52 collects the data and sends it to the subscribed python Client.
-4. You can find the generated files under `python_client/pressure_logs`
-
-You can change the duration of the log session in seconds by changing this variable in `gatt_client.py`:
-`LOG_DURATION = 10`
+3. Enter desired logging time
+4. Wait for the sampling period as the nRF52 collects the data and sends it to the subscribed python Client.
+5. You can find the generated files in script dir.
