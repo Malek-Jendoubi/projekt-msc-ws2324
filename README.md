@@ -59,7 +59,7 @@ The nrf52832 is programmed with the nrf Connect SDK, preferably in Visual Studio
 ### For the client side: Recording device
 
 1. Navigate to the directory `python_client/`.
-2. Run the command `python gatt_client.py`.
+2. Run the command `python bmp581_client.py`.
 3. Enter desired logging time
 4. Wait for the sampling period as the nRF52 collects the data and sends it to the subscribed python Client.
 5. You can find the generated files in script dir.
